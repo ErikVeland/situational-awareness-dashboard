@@ -448,16 +448,27 @@ dashboard (month-first, 12-hour time).
 </details>
 
 <details>
-<summary><strong>11. Dominant-algorithm highlighting in the legend</strong></summary>
+<summary><strong>11. Focus-pinned legend → sparkline → donut</strong></summary>
 
-`src/components/ramp/RampChartCard.tsx`.
+`src/components/ramp/RampChartCard.tsx`, `src/components/ramp/DonutChart.tsx`.
 
-The mock shows a flat legend. Mine emphasises the dominant algorithm:
-a 10 px dot with a soft coloured glow (box-shadow) instead of an
-8 px flat one, label weight bumps 400 → 500, and the percentage is
-re-coloured in the algorithm's accent. All pure CSS transitions. You
-can tell who's winning without reading the donut, and the legend
-finally agrees with the sparkline header.
+The legend emphasises the currently dominant algorithm (10 px dot with
+a coloured box-shadow glow, label weight bumped 400 → 500, percentage
+re-coloured in the algorithm's accent). Hovering or keyboard-focusing
+any row pins that algorithm as the featured one: the sparkline header,
+sparkline line, coloured percentage, _and_ donut highlight all track
+it, and the other donut slices fade to 0.35 opacity. A small
+"focus pinned" chip appears next to the sparkline title so the
+override is obvious. Mouse out / blur — everything returns to
+auto-tracking the dominant.
+
+Worth noting: the live stream keeps flowing during focus-pin. Only the
+"which algorithm is featured" auto-cycling is suspended; the global
+Pause button still freezes every tick if that's what you want. Each
+legend row is `tabIndex=0` with `role="button"`, an `aria-label`
+describing the action and an `aria-pressed` state, so keyboard and
+screen-reader users get the same affordance. All transitions are pure
+CSS.
 
 </details>
 
@@ -507,14 +518,25 @@ jitter each tick.
 </details>
 
 <details>
-<summary><strong>16. Alert accent on incidents > 0</strong></summary>
+<summary><strong>16. Semantic stat colours + shared green pill language</strong></summary>
 
-`src/components/summary/NetworkSummaryCard.tsx`.
+`src/components/summary/StatCard.tsx`,
+`src/components/summary/NetworkSummaryCard.tsx`,
+`src/components/weather/WeatherCard.tsx`.
 
-`StatCard` takes an `accent` prop (`'default' | 'alert'`). The
-incidents stat renders with `accent="alert"` when
-`summary.incidents > 0` — the number reddens so the eye lands on the
-metric that actually matters right now.
+`StatCard` takes a four-state `accent` prop
+(`'default' | 'ok' | 'warn' | 'alert'`) backed by an exhaustive
+`Record<NonNullable<accent>, string>` map, so adding a fifth accent
+without a class mapping fails the build. The Network Summary wires
+them semantically: Active (`ok`, live-green), Avg delay
+(`warn`, amber), Incidents (`alert` when > 0, red) and Total ramps
+(`default`, neutral slate).
+
+The same `accent-live` token threads through every
+green pill on the page: the LIVE/Paused header badge, the "N active"
+routes count, the Weather card's city chip (_Melbourne_), the Active
+stat number, and the focus ring on every interactive control. One
+colour, one meaning: _this is the live / healthy state_.
 
 </details>
 
