@@ -70,6 +70,7 @@ export default function RampChartCard({ state }: Props) {
         <DonutChart
           distribution={distribution}
           dominantAlgorithm={focusedAlgorithm}
+          focusPinned={isFocusPinned}
           size={220}
         />
 
@@ -91,7 +92,7 @@ export default function RampChartCard({ state }: Props) {
               onMouseLeave={() => setHoveredAlgorithm(null)}
               onFocus={() => setHoveredAlgorithm(algorithm)}
               onBlur={() => setHoveredAlgorithm(null)}
-              className="flex cursor-default items-center justify-between gap-6 rounded px-1.5 py-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-live/60"
+              className="flex cursor-pointer items-center justify-between gap-6 rounded-md px-3 py-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-live/60"
               style={{
                 transition: 'opacity 0.3s ease, background-color 0.2s ease',
                 opacity: isFocused ? 1 : 0.72,

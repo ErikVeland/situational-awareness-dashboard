@@ -65,12 +65,19 @@ interface DonutChartProps {
   dominantAlgorithm?: Algorithm;
   /** Diameter in px (SVG viewBox is fixed, CSS scales it). */
   size?: number;
+  /**
+   * When true the non-dominant slices dim to give the focused slice more
+   * visual weight. Set this while a legend row is hovered / focused; leave
+   * false when the chart is just auto-tracking the dominant algorithm.
+   */
+  focusPinned?: boolean;
 }
 
 export default function DonutChart({
   distribution,
   dominantAlgorithm,
   size = 220,
+  focusPinned = false,
 }: DonutChartProps) {
   const segments = useMemo(() => computeSegments(distribution), [distribution]);
 
@@ -100,9 +107,17 @@ export default function DonutChart({
           const color = ALGORITHM_COLOR[algorithm];
           const isDominant = algorithm === dominantAlgorithm;
           const [lx, ly] = polar(0, 0, LABEL_RADIUS, midAngle);
+          // Pinned focus fades the other slices so the focused one pops.
+          const dim = focusPinned && !isDominant;
 
           return (
-            <g key={algorithm}>
+            <g
+              key={algorithm}
+              style={{
+                opacity: dim ? 0.35 : 1,
+                transition: 'opacity 0.25s ease',
+              }}
+            >
               {/*
                * Stroke-dasharray approach: each algorithm is a full circle
                * whose visible painted length is controlled by dasharray.
