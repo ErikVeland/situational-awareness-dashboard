@@ -266,8 +266,13 @@ npm test
   bundle, deterministic output that snapshot-tests cleanly, and the
   geometry (`buildArcPath` in `DonutChart.geom.ts`,
   `buildSparklinePath` in `Sparkline.geom.ts`) is exported as pure
-  functions I can unit-test. Downside: no hover tooltips, no
-  animations, no axes. For a real product I'd reach for Recharts.
+  functions I can unit-test. Animations (the sparkline fresh-data
+  pulse, the donut stroke-dasharray transitions, the legend highlight
+  crossfades) are all hand-rolled in CSS. Downside: no hover tooltips,
+  no axes. For a real product I'd reach for Recharts.
+  transitions on the legend), so the gap vs. a charting library is
+  really just hover tooltips and axes. For a real product I'd reach
+  for Recharts.
 - **`useRampData` returns a value, not a Provider.** The stream is a
   singleton (one interval) but hooks re-run the subscription on each
   call. Centralising it in `<Dashboard>` and passing `ramp` down one
@@ -289,13 +294,58 @@ npm test
 
 ## Beyond the brief
 
-The brief is covered. Below is what I went further on and why.
-Everything here is optional — the brief still passes without any of
-it — but each piece earns its place by being either defensive, more
-accessible, or cheap operational polish. Click any entry to expand it.
+The brief is covered. Below is what I went further on, grouped by
+theme and ordered by user-facing impact. Each entry is a collapsed
+accordion — click any one to read the detail.
+
+### Interactivity & direct control
+
+New things the user can _do_, beyond reading the page.
 
 <details>
-<summary><strong>1. Zod at the JSON boundary</strong></summary>
+<summary><strong>Focus-pinned legend → sparkline → donut</strong></summary>
+
+`src/components/ramp/RampChartCard.tsx`, `src/components/ramp/DonutChart.tsx`.
+
+The legend emphasises the currently dominant algorithm (10 px dot with
+a coloured box-shadow glow, label weight bumped 400 → 500, percentage
+re-coloured in the algorithm's accent). Hovering or keyboard-focusing
+any row pins that algorithm as the featured one: the sparkline header,
+sparkline line, coloured percentage, _and_ donut highlight all track
+it, and the other donut slices fade to 0.35 opacity. A small
+"focus pinned" chip appears next to the sparkline title so the
+override is obvious. Mouse out / blur — everything returns to
+auto-tracking the dominant.
+
+The live stream keeps flowing during focus-pin. Only the "which
+algorithm is featured" auto-cycling is suspended; the global Pause
+button still freezes every tick if that's what you want. Each legend
+row is `tabIndex=0` with `role="button"`, an `aria-label` describing
+the action and an `aria-pressed` state, so keyboard and screen-reader
+users get the same affordance. All transitions are pure CSS.
+
+</details>
+
+<details>
+<summary><strong>Global <code>P</code> shortcut for pause</strong></summary>
+
+`src/components/Dashboard.tsx`, around the `useEffect`.
+
+A `keydown` listener on `window` toggles pause when `P` is pressed.
+It no-ops when focus is in an `<input>`, `<textarea>`, `<select>`,
+or another `<button>`, so it never interferes with normal typing.
+Surfaced in the UI via `aria-keyshortcuts="p"` and a tooltip on the
+pause button. Ops-desk dashboards get left running on wall screens;
+a one-key pause matters.
+
+</details>
+
+### Resilience & error handling
+
+When something goes wrong, the user sees context — not a white screen.
+
+<details>
+<summary><strong>Runtime validation at the JSON boundary (Zod)</strong></summary>
 
 `src/api/schemas.ts`, used in every `src/api/get*.ts`.
 
@@ -312,7 +362,7 @@ response.
 </details>
 
 <details>
-<summary><strong>2. App-root ErrorBoundary with retry</strong></summary>
+<summary><strong>App-root ErrorBoundary with retry</strong></summary>
 
 `src/components/ErrorBoundary.tsx`, mounted in `src/App.tsx`.
 
@@ -324,7 +374,7 @@ with a Retry button that resets its own state. ~60 LOC well spent.
 </details>
 
 <details>
-<summary><strong>3. Per-widget InlineError with typed categorisation</strong></summary>
+<summary><strong>Per-widget <code>InlineError</code> with typed categorisation</strong></summary>
 
 `src/components/InlineError.tsx`.
 
@@ -339,7 +389,7 @@ log. Generic "something went wrong" copy is how you lose bug reports.
 </details>
 
 <details>
-<summary><strong>4. <code>useAsyncData</code> exposes <code>retry()</code></strong></summary>
+<summary><strong><code>useAsyncData</code> exposes <code>retry()</code></strong></summary>
 
 `src/hooks/useAsyncData.ts`.
 
@@ -350,7 +400,7 @@ it. A transient blip is one click, not a page reload.
 </details>
 
 <details>
-<summary><strong>5. Ramp-stream error recovery</strong></summary>
+<summary><strong>Ramp-stream error recovery</strong></summary>
 
 `src/hooks/useRampData.ts`, look for `streamError`.
 
@@ -365,7 +415,71 @@ the try/catch, one bad tick silently stops the timer.
 </details>
 
 <details>
-<summary><strong>6. Dark / light theme, persisted, no FOUC</strong></summary>
+<summary><strong><code>retry</code> wired end-to-end</strong></summary>
+
+Every `InlineError` gets the hook's `retry`, so the Retry button
+actually re-runs the fetch. The ramp card doesn't render a Retry
+button for `streamError` because the next 500 ms tick is its own
+automatic retry.
+
+</details>
+
+### Accessibility & inclusion
+
+So the dashboard is usable without a mouse or without sight.
+
+<details>
+<summary><strong>ARIA + semantics throughout</strong></summary>
+
+Scan for `aria-` across `src/components/**`.
+
+- Landmarks (`<main>`, `<header>`, `<section>` via `Card`).
+- `role="img"` + `aria-label` on the donut, sparkline, and severity
+  dots, so screen readers hear "Algorithm 3 share over the last 60
+  seconds: 29%" instead of "graphic" or "circle".
+- `aria-pressed` on the pause button and on every legend row when
+  its focus pin is active.
+- `aria-live="polite"` on the Live/Paused badge text so state
+  changes are announced without interrupting.
+- `role="alert"` on error banners and the boundary fallback.
+- `:focus-visible` ring coloured in the live-green accent so it
+  reads on both themes.
+- The header datetime uses `<time dateTime>` for a machine-readable
+  timestamp.
+
+</details>
+
+<details>
+<summary><strong>Skip-to-content link</strong></summary>
+
+`src/components/Dashboard.tsx`, first child of the fragment.
+
+Visually hidden anchor that jumps to `#main-content` when focused.
+Only visible under keyboard focus. WCAG 2.4.1 — trivial to add,
+always expected.
+
+</details>
+
+<details>
+<summary><strong>Locale-correct formatting via <code>Intl</code></strong></summary>
+
+`src/components/Header.tsx`, `src/components/weather/WeatherCard.tsx`.
+
+The mock shows "Tue 16th 3:46 PM". Rather than hand-concatenate that,
+I use `Intl.DateTimeFormat('en-AU', …)` for weekday / month / time
+and `Intl.PluralRules('en', { type: 'ordinal' })` for
+`st` / `nd` / `rd` / `th`. Swap the locale string in one place and
+the UI adapts. `en-AU` is the right call for a Melbourne-themed
+dashboard (month-first, 12-hour time).
+
+</details>
+
+### Theming & visual language
+
+What every user sees on first load.
+
+<details>
+<summary><strong>Dark / light theme, persisted, no FOUC</strong></summary>
 
 `src/hooks/useTheme.ts`, `src/index.css`, `tailwind.config.js`,
 `index.html`.
@@ -389,136 +503,7 @@ sees. The toggle lets them change it.
 </details>
 
 <details>
-<summary><strong>7. Global <code>P</code> shortcut for pause</strong></summary>
-
-`src/components/Dashboard.tsx`, around the `useEffect`.
-
-A `keydown` listener on `window` toggles pause when `P` is pressed.
-It no-ops when focus is in an `<input>`, `<textarea>`, `<select>`,
-or another `<button>`, so it never interferes with normal typing.
-Surfaced in the UI via `aria-keyshortcuts="p"` and a tooltip on the
-pause button. Ops-desk dashboards get left running on wall screens;
-a one-key pause matters.
-
-</details>
-
-<details>
-<summary><strong>8. Skip-to-content link</strong></summary>
-
-`src/components/Dashboard.tsx`, first child of the fragment.
-
-Visually hidden anchor that jumps to `#main-content` when focused.
-Only visible under keyboard focus. WCAG 2.4.1 — trivial to add,
-always expected.
-
-</details>
-
-<details>
-<summary><strong>9. Accessibility generally</strong></summary>
-
-Scan for `aria-` across `src/components/**`.
-
-- Landmarks (`<main>`, `<header>`, `<section>` via `Card`).
-- `role="img"` + `aria-label` on the donut, sparkline, and severity
-  dots, so screen readers hear "Algorithm 3 share over the last 60
-  seconds: 29%" instead of "graphic" or "circle".
-- `aria-pressed` on the pause button.
-- `aria-live="polite"` on the Live/Paused badge text so state
-  changes are announced without interrupting.
-- `role="alert"` on error banners and the boundary fallback.
-- `:focus-visible` ring coloured in the live-green accent so it
-  reads on both themes.
-- The header datetime uses `<time dateTime>` for a machine-readable
-  timestamp.
-
-</details>
-
-<details>
-<summary><strong>10. Locale-correct formatting via <code>Intl</code></strong></summary>
-
-`src/components/Header.tsx`, `src/components/weather/WeatherCard.tsx`.
-
-The mock shows "Tue 16th 3:46 PM". Rather than hand-concatenate that,
-I use `Intl.DateTimeFormat('en-AU', …)` for weekday / month / time
-and `Intl.PluralRules('en', { type: 'ordinal' })` for
-`st` / `nd` / `rd` / `th`. Swap the locale string in one place and
-the UI adapts. `en-AU` is the right call for a Melbourne-themed
-dashboard (month-first, 12-hour time).
-
-</details>
-
-<details>
-<summary><strong>11. Focus-pinned legend → sparkline → donut</strong></summary>
-
-`src/components/ramp/RampChartCard.tsx`, `src/components/ramp/DonutChart.tsx`.
-
-The legend emphasises the currently dominant algorithm (10 px dot with
-a coloured box-shadow glow, label weight bumped 400 → 500, percentage
-re-coloured in the algorithm's accent). Hovering or keyboard-focusing
-any row pins that algorithm as the featured one: the sparkline header,
-sparkline line, coloured percentage, _and_ donut highlight all track
-it, and the other donut slices fade to 0.35 opacity. A small
-"focus pinned" chip appears next to the sparkline title so the
-override is obvious. Mouse out / blur — everything returns to
-auto-tracking the dominant.
-
-Worth noting: the live stream keeps flowing during focus-pin. Only the
-"which algorithm is featured" auto-cycling is suspended; the global
-Pause button still freezes every tick if that's what you want. Each
-legend row is `tabIndex=0` with `role="button"`, an `aria-label`
-describing the action and an `aria-pressed` state, so keyboard and
-screen-reader users get the same affordance. All transitions are pure
-CSS.
-
-</details>
-
-<details>
-<summary><strong>12. Sparkline "fresh data" pulse</strong></summary>
-
-`src/components/ramp/Sparkline.tsx`, `@keyframes sparklineTick` in
-`src/index.css`.
-
-The chart `<g>` is key-remounted on each accepted tick, which
-restarts a short opacity keyframe (0.6 → 1 over 350 ms, well under
-the 500 ms interval). It reads as a tiny heartbeat — you can tell at
-a glance the stream is live.
-
-</details>
-
-<details>
-<summary><strong>13. <code>performance.mark('ramp-tick')</code></strong></summary>
-
-`src/hooks/useRampData.ts`, inside the stream callback.
-
-One call per tick via the User Timing API, so DevTools' Performance
-panel can measure tick-to-paint latency without any extra
-instrumentation.
-
-</details>
-
-<details>
-<summary><strong>14. Bounded sparkline buffer (60 s × 2 Hz)</strong></summary>
-
-`src/utils/rampTransforms.ts`, `SPARKLINE_MAX_POINTS = 120`.
-
-The brief says "last 60 seconds". I cap at 120 points deterministically
-so memory per algorithm stays constant however long the tab is open.
-Covered by tests.
-
-</details>
-
-<details>
-<summary><strong>15. Tabular-number alignment</strong></summary>
-
-`className="tabular-nums"` on every percentage that changes in real
-time — legend, donut, network summary. Roboto's OpenType `tnum`
-makes `9%` and `23%` occupy the same width, so the layout doesn't
-jitter each tick.
-
-</details>
-
-<details>
-<summary><strong>16. Semantic stat colours + shared green pill language</strong></summary>
+<summary><strong>Semantic stat colours + shared green pill language</strong></summary>
 
 `src/components/summary/StatCard.tsx`,
 `src/components/summary/NetworkSummaryCard.tsx`,
@@ -541,7 +526,7 @@ colour, one meaning: _this is the live / healthy state_.
 </details>
 
 <details>
-<summary><strong>17. Ambient background gradients</strong></summary>
+<summary><strong>Ambient background gradients</strong></summary>
 
 `src/index.css` (`:root:not(.dark) body`, `:root.dark body`).
 
@@ -552,17 +537,86 @@ browser at zero runtime cost.
 </details>
 
 <details>
-<summary><strong>18. <code>retry</code> wired end-to-end</strong></summary>
+<summary><strong>Theme-aware scrollbars</strong></summary>
 
-Every `InlineError` gets the hook's `retry`, so the Retry button
-actually re-runs the fetch. The ramp card doesn't render a Retry
-button for `streamError` because the next 500 ms tick is its own
-automatic retry.
+`src/index.css`, webkit scrollbar rules. Thin, tinted to match each
+palette, ~10 lines. Long lists stop fighting the theme.
+
+</details>
+
+### Charts & motion
+
+Pixel-level polish on the two hand-rolled SVG charts.
+
+<details>
+<summary><strong>Sparkline "fresh data" pulse</strong></summary>
+
+`src/components/ramp/Sparkline.tsx`, `@keyframes sparklineTick` in
+`src/index.css`.
+
+The chart `<g>` is key-remounted on each accepted tick, which
+restarts a short opacity keyframe (0.6 → 1 over 350 ms, well under
+the 500 ms interval). It reads as a tiny heartbeat — you can tell at
+a glance the stream is live.
 
 </details>
 
 <details>
-<summary><strong>19. Extra fields in <code>networkSummary.json</code></strong></summary>
+<summary><strong>Donut stroke-dasharray transitions</strong></summary>
+
+`src/components/ramp/DonutChart.tsx`.
+
+Each ring is rendered as a `<circle>` whose visible arc is controlled
+by `stroke-dasharray` and `stroke-dashoffset` — both CSS-animatable.
+Distribution changes glide between configurations over 450 ms without
+any JS interpolation. The dominant (or focus-pinned) slice also picks
+up a `drop-shadow` filter that transitions in over 350 ms, and
+non-focused slices fade to 35% opacity when focus is pinned.
+
+</details>
+
+<details>
+<summary><strong>Tabular-number alignment</strong></summary>
+
+`className="tabular-nums"` on every percentage that changes in real
+time — legend, donut, network summary. Roboto's OpenType `tnum`
+makes `9%` and `23%` occupy the same width, so the layout doesn't
+jitter each tick.
+
+</details>
+
+### Performance & correctness
+
+Instrumentation and bounded-resource guarantees.
+
+<details>
+<summary><strong><code>performance.mark('ramp-tick')</code></strong></summary>
+
+`src/hooks/useRampData.ts`, inside the stream callback.
+
+One call per tick via the User Timing API, so DevTools' Performance
+panel can measure tick-to-paint latency without any extra
+instrumentation.
+
+</details>
+
+<details>
+<summary><strong>Bounded sparkline buffer (60 s × 2 Hz)</strong></summary>
+
+`src/utils/rampTransforms.ts`, `SPARKLINE_MAX_POINTS = 120`.
+
+The brief says "last 60 seconds". I cap at 120 points deterministically
+so memory per algorithm stays constant however long the tab is open.
+Covered by tests.
+
+</details>
+
+### Data schema for future features
+
+Headroom in the fixtures for work that isn't in the current UI.
+
+<details>
+<summary><strong>Extra fields in <code>networkSummary.json</code></strong></summary>
 
 Beyond the four metrics the brief asks for I added
 `alertThresholdPercent` (the threshold above which the dominant
@@ -570,14 +624,6 @@ share would count as an incident) and `currentMaxAlgorithmPercent`
 (the current dominant share). They aren't rendered yet — the schema
 is there so a future "threshold crossed" banner is a one-component
 change that doesn't need to touch the data layer again.
-
-</details>
-
-<details>
-<summary><strong>20. Theme-aware scrollbars</strong></summary>
-
-`src/index.css`, webkit scrollbar rules. Thin, tinted to match each
-palette, ~10 lines. Long lists stop fighting the theme.
 
 </details>
 
