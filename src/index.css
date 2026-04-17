@@ -1,0 +1,38 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: radial-gradient(
+      ellipse at 20% -10%,
+      rgba(56, 189, 248, 0.06),
+      transparent 50%
+    ),
+    radial-gradient(
+      ellipse at 100% 100%,
+      rgba(167, 139, 250, 0.05),
+      transparent 60%
+    ),
+    #0b1220;
+  font-family: 'Roboto', system-ui, sans-serif;
+}
+
+/* Thin scrollbars for the dark theme */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.18);
+}
