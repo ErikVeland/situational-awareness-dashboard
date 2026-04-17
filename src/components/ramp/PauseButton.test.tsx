@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { axe } from 'jest-axe';
 import PauseButton from './PauseButton';
 
 describe('<PauseButton>', () => {
@@ -23,5 +24,19 @@ describe('<PauseButton>', () => {
     render(<PauseButton paused={false} onToggle={onToggle} />);
     await userEvent.click(screen.getByRole('button'));
     expect(onToggle).toHaveBeenCalledTimes(1);
+  });
+
+  it('has no axe accessibility violations when not paused', async () => {
+    const { container } = render(
+      <PauseButton paused={false} onToggle={() => {}} />,
+    );
+    expect(await axe(container)).toHaveNoViolations();
+  });
+
+  it('has no axe accessibility violations when paused', async () => {
+    const { container } = render(
+      <PauseButton paused={true} onToggle={() => {}} />,
+    );
+    expect(await axe(container)).toHaveNoViolations();
   });
 });

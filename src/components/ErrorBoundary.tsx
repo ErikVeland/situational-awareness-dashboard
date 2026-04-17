@@ -1,4 +1,4 @@
-import { Component, type ErrorInfo, type ReactNode } from 'react';
+import { Component, Fragment, type ErrorInfo, type ReactNode } from 'react';
 
 interface Props {
   children: ReactNode;
@@ -7,6 +7,12 @@ interface Props {
 interface State {
   hasError: boolean;
   error: Error | null;
+  /**
+   * Incremented each time the user retries. Used as a key on the children
+   * wrapper so React unmounts and remounts all descendants, which forces
+   * every data-fetching hook to re-execute from scratch.
+   */
+  retryKey: number;
 }
 
 /**
@@ -17,9 +23,9 @@ interface State {
  * / componentDidCatch) is not yet available as hooks.
  */
 export default class ErrorBoundary extends Component<Props, State> {
-  state: State = { hasError: false, error: null };
+  state: State = { hasError: false, error: null, retryKey: 0 };
 
-  static getDerivedStateFromError(error: Error): State {
+  static getDerivedStateFromError(error: Error): Partial<State> {
     return { hasError: true, error };
   }
 
@@ -28,11 +34,21 @@ export default class ErrorBoundary extends Component<Props, State> {
   }
 
   handleRetry = (): void => {
-    this.setState({ hasError: false, error: null });
+    // Incrementing retryKey causes React to unmount and remount all children,
+    // so every data-fetching hook re-runs instead of replaying stale state.
+    this.setState((s) => ({
+      hasError: false,
+      error: null,
+      retryKey: s.retryKey + 1,
+    }));
   };
 
   render(): ReactNode {
-    if (!this.state.hasError) return this.props.children;
+    if (!this.state.hasError) {
+      return (
+        <Fragment key={this.state.retryKey}>{this.props.children}</Fragment>
+      );
+    }
 
     return (
       <div

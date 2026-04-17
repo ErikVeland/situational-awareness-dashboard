@@ -1,6 +1,19 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import { axe } from 'jest-axe';
 import DelayedRoutesCard from './DelayedRoutesCard';
+
+// Mocked so that async hook state updates don't fire during the axe scan,
+// which would otherwise trigger an act() warning.
+vi.mock('../../hooks/useDelayedRoutes');
+import { useDelayedRoutes } from '../../hooks/useDelayedRoutes';
+const mockUseDelayedRoutes = vi.mocked(useDelayedRoutes);
+mockUseDelayedRoutes.mockReturnValue({
+  data: null,
+  loading: false,
+  error: null,
+  retry: vi.fn(),
+});
 import type { DelayedRoute } from '../../api/types';
 
 const ROUTES: DelayedRoute[] = [
@@ -42,5 +55,10 @@ describe('<DelayedRoutesCard>', () => {
     render(<DelayedRoutesCard routes={[]} />);
     expect(screen.getByText(/0 active/i)).toBeInTheDocument();
     expect(screen.getByText(/No delayed routes/i)).toBeInTheDocument();
+  });
+
+  it('has no axe accessibility violations', async () => {
+    const { container } = render(<DelayedRoutesCard routes={ROUTES} />);
+    expect(await axe(container)).toHaveNoViolations();
   });
 });

@@ -21,9 +21,18 @@ export default function NetworkSummaryCard({ summary: override }: Props) {
           onRetry={state.retry}
         />
       ) : !summary ? (
-        <p className="text-sm text-stone-400 dark:text-slate-500 animate-pulse">
-          Loading network summary…
-        </p>
+        <div
+          className="animate-pulse grid grid-cols-2 gap-3"
+          aria-label="Loading network summary"
+          aria-busy="true"
+        >
+          {[0, 1, 2, 3].map((i) => (
+            <div
+              key={i}
+              className="rounded-lg bg-stone-100 dark:bg-slate-800 p-3 h-16"
+            />
+          ))}
+        </div>
       ) : (
         <div className="grid grid-cols-2 gap-3">
           <StatCard label="Total ramps" value={summary.totalRamps} />

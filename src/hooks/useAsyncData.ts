@@ -61,6 +61,10 @@ export function useAsyncData<T>(
     return () => {
       cancelled = true;
     };
+    // `factory` is intentionally omitted — factoryRef.current always holds the
+    // latest factory reference without causing the effect to re-subscribe on
+    // every render. `retry` is created inside this effect scope and would be a
+    // different reference on every run, so including it would cause a loop.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [...deps, retryCount]);
 

@@ -71,9 +71,28 @@ export default function WeatherCard({ data: dataOverride }: Props) {
           onRetry={state.retry}
         />
       ) : !data ? (
-        <p className="text-sm text-stone-400 dark:text-slate-500 animate-pulse">
-          Loading weather…
-        </p>
+        <div
+          className="animate-pulse"
+          aria-label="Loading weather"
+          aria-busy="true"
+        >
+          <div className="grid grid-cols-[1fr_auto] gap-x-6">
+            <div>
+              <div className="h-4 w-20 rounded bg-stone-200 dark:bg-slate-700" />
+              <div className="mt-2 h-14 w-28 rounded bg-stone-200 dark:bg-slate-700" />
+              <div className="mt-2 h-3 w-32 rounded bg-stone-200 dark:bg-slate-700" />
+            </div>
+            <div className="h-14 w-14 rounded-full bg-stone-200 dark:bg-slate-700" />
+          </div>
+          <div className="col-span-2 mt-4 border-t border-stone-200/80 dark:border-white/5 pt-3 space-y-3">
+            {[0, 1, 2, 3].map((i) => (
+              <div key={i} className="flex justify-between">
+                <div className="h-3 w-20 rounded bg-stone-200 dark:bg-slate-700" />
+                <div className="h-3 w-16 rounded bg-stone-200 dark:bg-slate-700" />
+              </div>
+            ))}
+          </div>
+        </div>
       ) : (
         <div className="grid grid-cols-[1fr_auto] gap-x-6 gap-y-1">
           <div>

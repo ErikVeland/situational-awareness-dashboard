@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
+import { axe } from 'jest-axe';
 import userEvent from '@testing-library/user-event';
 import RampChartCard from './RampChartCard';
 import type { RampDataState } from '../../hooks/useRampData';
@@ -81,6 +82,21 @@ describe('<RampChartCard>', () => {
     );
     expect(screen.getByText(/Algorithm 3 — Last 60s/i)).toBeInTheDocument();
     expect(screen.queryByText(/focus pinned/i)).not.toBeInTheDocument();
+  });
+
+  it('shows an inline error banner when streamError is set, but keeps the chart visible', () => {
+    const err = new Error('Transform failed');
+    render(<RampChartCard state={makeState({ streamError: err })} />);
+    expect(screen.getByRole('alert')).toBeInTheDocument();
+    expect(screen.getByText(/ramp stream/i)).toBeInTheDocument();
+    // Chart and legend remain visible alongside the error banner.
+    expect(screen.getByText('Algorithm 1')).toBeInTheDocument();
+    expect(screen.getByText(/Algorithm 3 — Last 60s/i)).toBeInTheDocument();
+  });
+
+  it('has no axe accessibility violations', async () => {
+    const { container } = render(<RampChartCard state={makeState()} />);
+    expect(await axe(container)).toHaveNoViolations();
   });
 
   it('also pins on keyboard focus (no mouse required)', () => {

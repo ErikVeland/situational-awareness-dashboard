@@ -82,59 +82,64 @@ export default function RampChartCard({ state }: Props) {
          */}
         <ul className="space-y-1.5 text-sm" aria-label="Algorithm distribution">
           {legend.map(({ algorithm, value, color, isFocused }) => (
-            <li
-              key={algorithm}
-              tabIndex={0}
-              role="button"
-              aria-label={`Focus sparkline on ${algorithm} (currently ${value}%)`}
-              aria-pressed={isFocused && isFocusPinned}
-              onMouseEnter={() => setHoveredAlgorithm(algorithm)}
-              onMouseLeave={() => setHoveredAlgorithm(null)}
-              onFocus={() => setHoveredAlgorithm(algorithm)}
-              onBlur={() => setHoveredAlgorithm(null)}
-              className="flex cursor-pointer items-center justify-between gap-6 rounded-md px-3 py-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-live/60"
-              style={{
-                transition: 'opacity 0.3s ease, background-color 0.2s ease',
-                opacity: isFocused ? 1 : 0.72,
-                backgroundColor: isFocused ? `${color}14` : 'transparent',
-              }}
-            >
-              {/* Coloured dot — slightly larger with a glow for the focused row */}
-              <span className="flex items-center gap-2">
-                <span
-                  aria-hidden
-                  className="inline-block rounded-full flex-shrink-0"
-                  style={{
-                    width: isFocused ? 10 : 8,
-                    height: isFocused ? 10 : 8,
-                    backgroundColor: color,
-                    boxShadow: isFocused ? `0 0 6px ${color}bb` : 'none',
-                    transition:
-                      'width 0.3s ease, height 0.3s ease, box-shadow 0.3s ease',
-                  }}
-                />
-                <span
-                  className="text-slate-700 dark:text-slate-200"
-                  style={{
-                    fontWeight: isFocused ? 500 : 400,
-                    transition: 'font-weight 0.2s ease',
-                  }}
-                >
-                  {algorithm}
-                </span>
-              </span>
-
-              {/* Percentage — coloured in the algorithm's accent for the focused row */}
-              <span
-                className="tabular-nums"
+            <li key={algorithm}>
+              {/*
+               * Using a <button> inside <li> (rather than role="button" on the
+               * <li> itself) keeps the list/listitem semantic intact, satisfying
+               * the HTML spec and ARIA allowedRoles rules for <ul>.
+               */}
+              <button
+                type="button"
+                aria-label={`Focus sparkline on ${algorithm} (currently ${value}%)`}
+                aria-pressed={isFocused && isFocusPinned}
+                onMouseEnter={() => setHoveredAlgorithm(algorithm)}
+                onMouseLeave={() => setHoveredAlgorithm(null)}
+                onFocus={() => setHoveredAlgorithm(algorithm)}
+                onBlur={() => setHoveredAlgorithm(null)}
+                className="flex w-full cursor-pointer items-center justify-between gap-6 rounded-md px-3 py-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-live/60"
                 style={{
-                  color: isFocused ? color : undefined,
-                  fontWeight: isFocused ? 500 : 400,
-                  transition: 'color 0.3s ease, font-weight 0.2s ease',
+                  transition: 'opacity 0.3s ease, background-color 0.2s ease',
+                  opacity: isFocused ? 1 : 0.72,
+                  backgroundColor: isFocused ? `${color}14` : 'transparent',
                 }}
               >
-                {value}%
-              </span>
+                {/* Coloured dot — slightly larger with a glow for the focused row */}
+                <span className="flex items-center gap-2">
+                  <span
+                    aria-hidden
+                    className="inline-block rounded-full flex-shrink-0"
+                    style={{
+                      width: isFocused ? 10 : 8,
+                      height: isFocused ? 10 : 8,
+                      backgroundColor: color,
+                      boxShadow: isFocused ? `0 0 6px ${color}bb` : 'none',
+                      transition:
+                        'width 0.3s ease, height 0.3s ease, box-shadow 0.3s ease',
+                    }}
+                  />
+                  <span
+                    className="text-slate-700 dark:text-slate-200"
+                    style={{
+                      fontWeight: isFocused ? 500 : 400,
+                      transition: 'font-weight 0.2s ease',
+                    }}
+                  >
+                    {algorithm}
+                  </span>
+                </span>
+
+                {/* Percentage — coloured in the algorithm's accent for the focused row */}
+                <span
+                  className="tabular-nums"
+                  style={{
+                    color: isFocused ? color : undefined,
+                    fontWeight: isFocused ? 500 : 400,
+                    transition: 'color 0.3s ease, font-weight 0.2s ease',
+                  }}
+                >
+                  {value}%
+                </span>
+              </button>
             </li>
           ))}
         </ul>
