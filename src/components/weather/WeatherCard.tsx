@@ -70,7 +70,7 @@ export default function WeatherCard({ data: dataOverride }: Props) {
     <Card
       title="Weather"
       headerRight={
-        <span className="rounded-full bg-bg-muted px-2.5 py-1 text-xs tracking-wider text-stone-500 dark:text-slate-300">
+        <span className="rounded-full bg-accent-live/15 px-2.5 py-1 text-xs font-medium tracking-wider text-accent-live ring-1 ring-accent-live/30">
           {data?.city ?? '—'}
         </span>
       }
