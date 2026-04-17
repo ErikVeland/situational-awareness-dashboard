@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import RampChartCard from './RampChartCard';
 import type { RampDataState } from '../../hooks/useRampData';
@@ -60,5 +60,40 @@ describe('<RampChartCard>', () => {
   it('displays the current ramp count badge', () => {
     render(<RampChartCard state={makeState({ latestRampCount: 50 })} />);
     expect(screen.getByText('50 ramps')).toBeInTheDocument();
+  });
+
+  it('pins the sparkline to a non-dominant algorithm on legend hover', async () => {
+    render(<RampChartCard state={makeState()} />);
+
+    // Default: dominant algorithm drives the header.
+    expect(screen.getByText(/Algorithm 3 — Last 60s/i)).toBeInTheDocument();
+
+    // Hover the Algorithm 1 row — header should track it.
+    await userEvent.hover(
+      screen.getByRole('button', { name: /Focus sparkline on Algorithm 1/i }),
+    );
+    expect(screen.getByText(/Algorithm 1 — Last 60s/i)).toBeInTheDocument();
+    expect(screen.getByText(/focus pinned/i)).toBeInTheDocument();
+
+    // Leaving the row drops back to the dominant.
+    await userEvent.unhover(
+      screen.getByRole('button', { name: /Focus sparkline on Algorithm 1/i }),
+    );
+    expect(screen.getByText(/Algorithm 3 — Last 60s/i)).toBeInTheDocument();
+    expect(screen.queryByText(/focus pinned/i)).not.toBeInTheDocument();
+  });
+
+  it('also pins on keyboard focus (no mouse required)', () => {
+    render(<RampChartCard state={makeState()} />);
+
+    const row = screen.getByRole('button', {
+      name: /Focus sparkline on Algorithm 2/i,
+    });
+    // element.focus() doesn't always fire React's synthetic onFocus under
+    // JSDOM; fireEvent dispatches the event the component listens for.
+    fireEvent.focus(row);
+    expect(screen.getByText(/Algorithm 2 — Last 60s/i)).toBeInTheDocument();
+    fireEvent.blur(row);
+    expect(screen.getByText(/Algorithm 3 — Last 60s/i)).toBeInTheDocument();
   });
 });
