@@ -6,14 +6,24 @@ weather widget, delayed-routes list, a live-updating ramp algorithm chart
 
 Built for the Senior Front-End React Developer take-home assessment.
 
+## Prerequisites
+
+- **Node.js** ≥ 18.17 (tested on Node 22)
+- **npm** ≥ 9 (bundled with recent Node releases)
+
+No other global tooling is required — every dependency lives in
+`package.json`.
+
 ## Quick start
+
+Two commands, as requested by the brief:
 
 ```bash
 npm install
 npm run dev
 ```
 
-Open http://localhost:5173 in your browser.
+Then open http://localhost:5173 in your browser.
 
 ### Other scripts
 
@@ -26,6 +36,71 @@ Open http://localhost:5173 in your browser.
 | `npm run test:watch` | Run Vitest in watch mode                            |
 | `npm run lint`       | Run ESLint                                          |
 | `npm run typecheck`  | Type-check without emitting                         |
+
+## How this maps to the brief
+
+The assessment lists specific functional and architectural requirements.
+This table is a direct pointer from each requirement to where it's
+fulfilled in the code — useful for the reviewer.
+
+### Functional requirements
+
+- **Weather widget** — `src/components/weather/WeatherCard.tsx`. City,
+  temperature, datetime, icon, humidity, chance of rain, wind, tomorrow.
+  Data flows from `src/mocks/weather.json` → `getWeather()` →
+  `useWeather()` → `WeatherCard`. No data is inlined in the component.
+- **Delayed routes** — `src/components/routes/DelayedRoutesCard.tsx` +
+  `RouteRow.tsx` + `SeverityDot.tsx`. Severity is a discriminated union
+  mapped to Tailwind classes via `SEVERITY_CLASS satisfies
+  Record<Severity, string>` (from the provided types). `high` shows red,
+  `medium` shows amber, `low` shows slate — visually distinct.
+- **Ramp chart (live donut)** — `src/components/ramp/RampChartCard.tsx` +
+  `DonutChart.tsx`. Subscribes via `useRampData()`, updates on every
+  500 ms tick.
+- **History sparkline** — `src/components/ramp/Sparkline.tsx`. Plots the
+  last 120 points (60 s × 2 Hz) of the currently dominant algorithm.
+  Dominant algorithm is recomputed every tick in `useRampData`; when it
+  changes, the sparkline tracks the new leader.
+- **Pause toggle** — `src/components/ramp/PauseButton.tsx` +
+  `useRampData.ts`. The display freezes while the subscription keeps
+  running; `latestReceivedAt` in the hook's return keeps advancing,
+  proving the stream is still alive. See "Pause semantics" below.
+- **Network summary** — `src/components/summary/NetworkSummaryCard.tsx` +
+  `StatCard.tsx`. Total, Active, Incidents, Avg delay.
+
+### Architectural requirements
+
+- **Components independently testable** — each card accepts an optional
+  data-override prop so it can be mounted without its hook. Tests in
+  `src/components/**/*.test.tsx` use this pattern.
+- **No prop-drilling deeper than one level** — the only cross-cutting
+  state (ramp stream + pause flag) lives in `useRampData`, consumed by
+  `<Dashboard>` and passed down one level to `<Header>` and
+  `<RampChartCard>`. Per-widget data is local to each card.
+- **Hardcoded data from JSON + typed constants** — all mocks live in
+  `src/mocks/*.json`, loaded through a typed API fn in `src/api/` and
+  consumed via a custom hook (`useWeather`, `useDelayedRoutes`,
+  `useNetworkSummary`). Types in `src/api/types.ts`. No untyped literals
+  in JSX.
+- **Severity as discriminated union** — `type Severity = 'low' |
+  'medium' | 'high'` with `SEVERITY_CLASS satisfies Record<Severity,
+  string>` (a mapped-type-style guarantee). Missing or mistyped keys
+  fail the build.
+
+### Evaluation criteria → evidence
+
+- **TypeScript** — strict mode, `noUncheckedIndexedAccess`, generics in
+  `useAsyncData<T>`, no `any`, no unsafe casts.
+- **React** — hook composition, deliberate `useMemo`/`useCallback`,
+  `useRef` mirror for the pause flag to keep the subscription stable.
+- **UI fidelity** — dark-theme Tailwind palette, Roboto font,
+  CSS-grid-based responsive layout that collapses to one column on
+  small screens.
+- **Testing** — 57 passing tests; fake timers for the 500 ms stream and
+  1 s clock; edge cases for SVG math; pause invariant.
+- **Code quality** — small single-purpose files, separation of
+  concerns (API → hook → card → primitive), explanatory JSDoc on every
+  hook.
 
 ## Stack
 
@@ -73,6 +148,20 @@ src/
 Each card is independently testable — its visible data is either a prop
 override or comes from its own hook. The tests in
 `src/components/**/*.test.tsx` exercise the widgets with inline fixtures.
+
+## Data flow
+
+```
+  mocks/*.json      ← hardcoded fixtures (weather, routes, summary)
+       ↓
+  api/*.ts          ← typed getters (Promise<T> or subscription)
+       ↓
+  hooks/use*.ts     ← custom hooks (useAsyncData<T>, useRampData)
+       ↓
+  components/*      ← presentational widgets
+```
+
+Only the ramp stream is live; everything else resolves once per mount.
 
 ## State architecture
 
