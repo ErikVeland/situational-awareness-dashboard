@@ -3,32 +3,30 @@ import type { Algorithm, AlgorithmDistribution } from '../../api/types';
 import { ALGORITHMS } from '../../api/types';
 import { ALGORITHM_COLOR } from '../../theme/algorithmColors';
 
-interface DonutChartProps {
-  distribution: AlgorithmDistribution;
-  /** Diameter in px (SVG viewBox is fixed, CSS scales it). */
-  size?: number;
-  /** Thickness of the ring as a fraction of radius (0–1). */
-  thickness?: number;
-}
+// ─── Geometry constants (kept in sync with the path-based fallback below) ────
 
-interface Arc {
-  algorithm: Algorithm;
-  path: string;
-  /** Angle mid-point, used to position the percentage label. */
-  midAngleRad: number;
-  value: number;
-}
-
+/** Midpoint radius of the ring (pixels, in the SVG viewBox space). */
+const RING_RADIUS = 84;
+/** Ring thickness in the same space: equals rOuter * thickness (100 * 0.32). */
+const RING_WIDTH = 32;
+/** Full circumference of the ring at RING_RADIUS. */
+const CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS; // ≈ 527.79
+/** Radius at which percentage labels are placed (just outside the ring). */
+const LABEL_RADIUS = 118;
 const TAU = Math.PI * 2;
+
+// ─── buildArcPath (exported for unit tests, not used in rendering) ────────────
+
 const EPSILON = 1e-3;
 
-/** Convert polar coordinates (angle in radians, 0 = 12 o'clock) to cartesian. */
 function polar(cx: number, cy: number, r: number, angleRad: number): [number, number] {
   return [cx + r * Math.sin(angleRad), cy - r * Math.cos(angleRad)];
 }
 
 /**
- * Builds an SVG arc path for an annulus sector (donut slice).
+ * Builds an SVG arc `d` string for an annulus sector (donut slice).
+ * Kept as a pure export so existing geometry tests don't change.
+ * The component itself now uses stroke-dasharray circles for CSS transitions.
  */
 export function buildArcPath(
   cx: number,
@@ -41,7 +39,6 @@ export function buildArcPath(
   const sweep = endAngle - startAngle;
   if (sweep <= EPSILON) return '';
 
-  // Full-circle slice — SVG arcs can't draw a full circle in one command.
   if (sweep >= TAU - EPSILON) {
     return [
       `M ${cx} ${cy - rOuter}`,
@@ -68,41 +65,65 @@ export function buildArcPath(
   ].join(' ');
 }
 
+// ─── Segment computation ──────────────────────────────────────────────────────
+
+interface Segment {
+  algorithm: Algorithm;
+  /** Raw distribution value — rendered as a rounded percentage. */
+  value: number;
+  /** Painted arc length in SVG units. */
+  segLength: number;
+  /** Cumulative length of all preceding segments — used for dashoffset. */
+  cumOffset: number;
+  /** Midpoint angle in radians, measured clockwise from 12 o'clock. */
+  midAngle: number;
+}
+
+function computeSegments(distribution: AlgorithmDistribution): Segment[] {
+  const total = ALGORITHMS.reduce((s, a) => s + distribution[a], 0);
+  if (total <= 0) return [];
+
+  let cumOffset = 0;
+  const segments: Segment[] = [];
+
+  for (const algorithm of ALGORITHMS) {
+    const value = distribution[algorithm];
+    if (value <= 0) continue;
+
+    const segLength = (value / total) * CIRCUMFERENCE;
+    const startAngle = (cumOffset / CIRCUMFERENCE) * TAU;
+    const sweepAngle = (segLength / CIRCUMFERENCE) * TAU;
+
+    segments.push({
+      algorithm,
+      value,
+      segLength,
+      cumOffset,
+      midAngle: startAngle + sweepAngle / 2,
+    });
+    cumOffset += segLength;
+  }
+
+  return segments;
+}
+
+// ─── Component ────────────────────────────────────────────────────────────────
+
+interface DonutChartProps {
+  distribution: AlgorithmDistribution;
+  dominantAlgorithm?: Algorithm;
+  /** Diameter in px (SVG viewBox is fixed, CSS scales it). */
+  size?: number;
+}
+
 export default function DonutChart({
   distribution,
+  dominantAlgorithm,
   size = 220,
-  thickness = 0.32,
 }: DonutChartProps) {
-  const arcs = useMemo<Arc[]>(() => {
-    const total = ALGORITHMS.reduce((s, a) => s + distribution[a], 0);
-    if (total <= 0) return [];
+  const segments = useMemo(() => computeSegments(distribution), [distribution]);
 
-    const cx = 0;
-    const cy = 0;
-    const rOuter = 100;
-    const rInner = rOuter * (1 - thickness);
-
-    let angle = 0;
-    const result: Arc[] = [];
-
-    for (const algorithm of ALGORITHMS) {
-      const value = distribution[algorithm];
-      const sweep = (value / total) * TAU;
-      if (sweep > EPSILON) {
-        const end = angle + sweep;
-        result.push({
-          algorithm,
-          value,
-          path: buildArcPath(cx, cy, rOuter, rInner, angle, end),
-          midAngleRad: angle + sweep / 2,
-        });
-        angle = end;
-      }
-    }
-    return result;
-  }, [distribution, thickness]);
-
-  const total = ALGORITHMS.reduce((s, a) => s + distribution[a], 0);
+  const hasData = segments.length > 0;
 
   return (
     <svg
@@ -111,33 +132,70 @@ export default function DonutChart({
       viewBox="-120 -120 240 240"
       width={size}
       height={size}
-      className="block"
+      className="block overflow-visible"
     >
-      {total <= 0 ? (
+      {!hasData ? (
+        /* Placeholder ring — colour adapts to theme via CSS variable */
         <circle
           cx={0}
           cy={0}
-          r={100}
+          r={RING_RADIUS}
           fill="none"
-          stroke="#1b2235"
-          strokeWidth={100 * 0.32}
+          style={{ stroke: 'rgb(var(--color-bg-muted))' }}
+          strokeWidth={RING_WIDTH}
         />
       ) : (
-        arcs.map((arc) => {
-          const [lx, ly] = polar(0, 0, 118, arc.midAngleRad);
+        segments.map(({ algorithm, value, segLength, cumOffset, midAngle }) => {
+          const color = ALGORITHM_COLOR[algorithm];
+          const isDominant = algorithm === dominantAlgorithm;
+          const [lx, ly] = polar(0, 0, LABEL_RADIUS, midAngle);
+
           return (
-            <g key={arc.algorithm}>
-              <path d={arc.path} fill={ALGORITHM_COLOR[arc.algorithm]} />
-              {arc.value >= 3 && (
+            <g key={algorithm}>
+              {/*
+               * Stroke-dasharray approach: each algorithm is a full circle
+               * whose visible painted length is controlled by dasharray.
+               * rotate(-90) starts the stroke at 12 o'clock; dashoffset
+               * shifts each segment past its predecessors.
+               *
+               * stroke-dasharray and stroke-dashoffset are CSS-animatable,
+               * so the transition between distributions is handled by the
+               * browser — no JS interpolation needed.
+               */}
+              <circle
+                cx={0}
+                cy={0}
+                r={RING_RADIUS}
+                fill="none"
+                stroke={color}
+                strokeWidth={RING_WIDTH}
+                transform="rotate(-90)"
+                style={{
+                  strokeDasharray: `${segLength.toFixed(3)} ${CIRCUMFERENCE.toFixed(3)}`,
+                  strokeDashoffset: (-cumOffset).toFixed(3),
+                  transition:
+                    'stroke-dasharray 0.45s ease, stroke-dashoffset 0.45s ease, filter 0.35s ease',
+                  filter: isDominant
+                    ? `drop-shadow(0 0 5px ${color}cc)`
+                    : 'none',
+                }}
+              />
+
+              {/* Percentage label — appears outside the ring at the arc midpoint */}
+              {value >= 3 && (
                 <text
                   x={lx}
                   y={ly}
                   textAnchor="middle"
                   dominantBaseline="middle"
-                  className="fill-slate-200"
+                  className="fill-slate-700 dark:fill-slate-200"
                   fontSize={12}
+                  style={{
+                    transition: 'opacity 0.3s ease',
+                    fontWeight: isDominant ? 600 : 400,
+                  }}
                 >
-                  {arc.value}%
+                  {Math.round(value)}%
                 </text>
               )}
             </g>

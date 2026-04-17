@@ -1,4 +1,5 @@
 import Card from '../Card';
+import InlineError from '../InlineError';
 import StatCard from './StatCard';
 import type { NetworkSummary } from '../../api/types';
 import { useNetworkSummary } from '../../hooks/useNetworkSummary';
@@ -13,16 +14,20 @@ export default function NetworkSummaryCard({ summary: override }: Props) {
 
   return (
     <Card title="Network Summary" className="col-span-full lg:col-span-1">
-      {!summary ? (
-        <p className="text-sm text-slate-400">
-          {state.error
-            ? `Error: ${state.error.message}`
-            : 'Loading network summary…'}
+      {state.error ? (
+        <InlineError
+          error={state.error}
+          resource="network summary"
+          onRetry={state.retry}
+        />
+      ) : !summary ? (
+        <p className="text-sm text-stone-400 dark:text-slate-500 animate-pulse">
+          Loading network summary…
         </p>
       ) : (
         <div className="grid grid-cols-2 gap-3">
           <StatCard label="Total ramps" value={summary.totalRamps} />
-          <StatCard label="Active" value={summary.activeRamps} />
+          <StatCard label="Active"      value={summary.activeRamps} />
           <StatCard
             label="Incidents"
             value={summary.incidents}

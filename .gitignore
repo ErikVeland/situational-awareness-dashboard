@@ -9,3 +9,7 @@ coverage
 
 # Assignment brief is confidential — keep out of source control
 *.pdf
+
+# Local agent/tool state
+.claude/
+.playwright-mcp/

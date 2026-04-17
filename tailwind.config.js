@@ -1,17 +1,23 @@
 /** @type {import('tailwindcss').Config} */
 export default {
   content: ['./index.html', './src/**/*.{ts,tsx}'],
+  // 'class' strategy: dark mode activates when the `dark` class is on <html>.
+  // This lets useTheme toggle the class programmatically and persist to
+  // localStorage, with a tiny inline script in index.html to prevent flash.
+  darkMode: 'class',
   theme: {
     extend: {
       fontFamily: {
         sans: ['Roboto', 'system-ui', 'sans-serif'],
       },
       colors: {
-        // Dashboard dark palette derived from the mock
+        // All bg colours are CSS-variable-backed so they flip for free when
+        // the `dark` class is toggled — no need for `dark:` prefixes in
+        // components that use these tokens.
         bg: {
-          DEFAULT: '#0b1220',
-          card: '#141a2b',
-          muted: '#1b2235',
+          DEFAULT: 'rgb(var(--color-bg) / <alpha-value>)',
+          card: 'rgb(var(--color-bg-card) / <alpha-value>)',
+          muted: 'rgb(var(--color-bg-muted) / <alpha-value>)',
         },
         accent: {
           live: '#22c55e',

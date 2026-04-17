@@ -38,12 +38,12 @@ describe('<DonutChart>', () => {
       'Algorithm 5': 0,
     };
     const { container } = render(<DonutChart distribution={dist} />);
-    // No arc <path>s, just the empty-state ring
+    // No data segment circles or paths — just the empty-state placeholder circle
     expect(container.querySelectorAll('path').length).toBe(0);
     expect(container.querySelectorAll('circle').length).toBe(1);
   });
 
-  it('renders one arc per non-zero slice', () => {
+  it('renders one circle per non-zero slice', () => {
     const dist: AlgorithmDistribution = {
       'Algorithm 1': 25,
       'Algorithm 2': 25,
@@ -52,7 +52,10 @@ describe('<DonutChart>', () => {
       'Algorithm 5': 0,
     };
     const { container } = render(<DonutChart distribution={dist} />);
-    expect(container.querySelectorAll('path').length).toBe(4);
+    // Rendering switched from <path> arcs to stroke-dasharray <circle>s so
+    // that CSS can animate stroke-dasharray / stroke-dashoffset transitions.
+    expect(container.querySelectorAll('circle').length).toBe(4);
+    expect(container.querySelectorAll('path').length).toBe(0);
   });
 
   it('omits labels for slices below 3%', () => {
@@ -68,5 +71,23 @@ describe('<DonutChart>', () => {
     // Only Algorithm 1 should have a visible percentage label
     expect(labels.length).toBe(1);
     expect(labels[0]?.textContent).toBe('97%');
+  });
+
+  it('applies a drop-shadow filter to the dominant algorithm circle', () => {
+    const dist: AlgorithmDistribution = {
+      'Algorithm 1': 40,
+      'Algorithm 2': 30,
+      'Algorithm 3': 30,
+      'Algorithm 4': 0,
+      'Algorithm 5': 0,
+    };
+    const { container } = render(
+      <DonutChart distribution={dist} dominantAlgorithm="Algorithm 1" />,
+    );
+    const circles = container.querySelectorAll('circle');
+    // The first circle (Algorithm 1, dominant) should have a drop-shadow filter
+    expect((circles[0] as SVGCircleElement).style.filter).toMatch(/drop-shadow/);
+    // Non-dominant circles should not have a drop-shadow filter
+    expect((circles[1] as SVGCircleElement).style.filter).not.toMatch(/drop-shadow/);
   });
 });

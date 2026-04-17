@@ -23,14 +23,14 @@ export default function Card({
   return (
     <section
       className={[
-        'rounded-xl bg-bg-card/80 ring-1 ring-white/5',
-        'shadow-[0_0_0_1px_rgba(255,255,255,0.02)]',
+        'rounded-xl bg-bg-card/80',
+        'ring-1 ring-bg-muted',
         'flex flex-col overflow-hidden',
         className ?? '',
       ].join(' ')}
     >
       {(title || headerRight) && (
-        <header className="flex items-center justify-between px-5 pt-4 pb-3 text-xs tracking-[0.18em] text-slate-400">
+        <header className="flex items-center justify-between px-5 pt-4 pb-3 text-xs tracking-[0.18em] text-slate-500 dark:text-slate-400">
           {title ? <span className="uppercase">{title}</span> : <span />}
           {headerRight}
         </header>

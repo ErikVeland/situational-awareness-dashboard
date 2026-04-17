@@ -77,6 +77,11 @@ export default function Sparkline({
     [],
   );
 
+  // Key off the latest timestamp so that React remounts the paths on each
+  // tick, triggering the CSS @keyframes entrance animation — a subtle
+  // brightness pulse that signals live data without distracting the user.
+  const tickKey = points.length > 0 ? points[points.length - 1]!.timestamp : 'empty';
+
   return (
     <svg
       role="img"
@@ -93,17 +98,21 @@ export default function Sparkline({
           <stop offset="100%" stopColor={color} stopOpacity={0} />
         </linearGradient>
       </defs>
-      {areaD && <path d={areaD} fill={`url(#${gradId})`} />}
-      {d && (
-        <path
-          d={d}
-          stroke={color}
-          strokeWidth={1.5}
-          fill="none"
-          strokeLinejoin="round"
-          strokeLinecap="round"
-        />
-      )}
+
+      {/* key causes remount on each tick, restarting the CSS animation */}
+      <g key={tickKey} style={{ animation: 'sparklineTick 0.35s ease forwards' }}>
+        {areaD && <path d={areaD} fill={`url(#${gradId})`} />}
+        {d && (
+          <path
+            d={d}
+            stroke={color}
+            strokeWidth={1.5}
+            fill="none"
+            strokeLinejoin="round"
+            strokeLinecap="round"
+          />
+        )}
+      </g>
     </svg>
   );
 }

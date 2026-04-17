@@ -32,6 +32,12 @@ export interface RampDataState {
   latestReceivedAt: number | null;
   /** Number of ramps in the most recent live tick (always current). */
   latestRampCount: number;
+  /**
+   * Set when the stream callback throws (e.g. a transform or parsing error).
+   * Null while the stream is healthy. Clears automatically on the next
+   * successful tick so transient errors self-heal without a manual retry.
+   */
+  streamError: Error | null;
   /** Toggle the paused flag. */
   togglePause: () => void;
 }
@@ -83,27 +89,46 @@ export function useRampData(): RampDataState {
   const [latestReceivedAt, setLatestReceivedAt] = useState<number | null>(null);
   const [latestRampCount, setLatestRampCount] = useState<number>(0);
 
+  const [streamError, setStreamError] = useState<Error | null>(null);
+
   const pausedRef = useRef(paused);
   pausedRef.current = paused;
 
   useEffect(() => {
     const onUpdate = (ramps: Ramp[]): void => {
-      // Always track the most recent tick metadata, even when paused.
-      const now = Date.now();
-      setLatestReceivedAt(now);
-      setLatestRampCount(ramps.length);
+      try {
+        // Mark the moment the tick arrives so DevTools can measure tick-to-paint
+        // latency: pair this mark with a User Timing measure in DevTools or add
+        // a complementary mark in a useLayoutEffect.
+        performance.mark('ramp-tick');
 
-      if (pausedRef.current) return;
+        // Always track the most recent tick metadata, even when paused.
+        const now = Date.now();
+        setLatestReceivedAt(now);
+        setLatestRampCount(ramps.length);
 
-      const dist = rampsToDistribution(ramps);
-      setDistribution(dist);
-      setHistory((prev) => {
-        const next = { ...prev };
-        for (const a of ALGORITHMS) {
-          next[a] = appendSparklinePoint(prev[a], dist[a], now);
-        }
-        return next;
-      });
+        // Self-heal: clear any previous processing error on a successful tick.
+        setStreamError(null);
+
+        if (pausedRef.current) return;
+
+        const dist = rampsToDistribution(ramps);
+        setDistribution(dist);
+        setHistory((prev) => {
+          const next = { ...prev };
+          for (const a of ALGORITHMS) {
+            next[a] = appendSparklinePoint(prev[a], dist[a], now);
+          }
+          return next;
+        });
+      } catch (err) {
+        // Surface processing errors in the UI without crashing the stream.
+        // The interval keeps ticking — if the next callback succeeds the
+        // error clears automatically.
+        setStreamError(
+          err instanceof Error ? err : new Error(String(err)),
+        );
+      }
     };
 
     const cleanup = getRampAlgorithms(onUpdate);
@@ -124,6 +149,7 @@ export function useRampData(): RampDataState {
     paused,
     latestReceivedAt,
     latestRampCount,
+    streamError,
     togglePause,
   };
 }

@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { useAsyncData } from './useAsyncData';
 
@@ -31,6 +31,18 @@ describe('useAsyncData', () => {
     await waitFor(() => expect(result.current.loading).toBe(false));
     expect(result.current.error).toBeInstanceOf(Error);
     expect(result.current.error?.message).toBe('string-reason');
+  });
+
+  it('re-fetches when retry() is called', async () => {
+    let call = 0;
+    const factory = vi.fn(async () => ++call);
+    const { result } = renderHook(() => useAsyncData<number>(factory));
+
+    await waitFor(() => expect(result.current.data).toBe(1));
+
+    act(() => { result.current.retry(); });
+    await waitFor(() => expect(result.current.data).toBe(2));
+    expect(factory).toHaveBeenCalledTimes(2);
   });
 
   it('ignores stale resolutions after unmount', async () => {

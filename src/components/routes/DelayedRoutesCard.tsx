@@ -1,4 +1,5 @@
 import Card from '../Card';
+import InlineError from '../InlineError';
 import RouteRow from './RouteRow';
 import type { DelayedRoute } from '../../api/types';
 import { useDelayedRoutes } from '../../hooks/useDelayedRoutes';
@@ -10,6 +11,9 @@ interface Props {
 export default function DelayedRoutesCard({ routes: override }: Props) {
   const state = useDelayedRoutes();
   const routes = override ?? state.data ?? [];
+  // Show the loading state only when we're waiting on the hook, not when
+  // the caller has already supplied an (empty) override.
+  const isLoading = state.loading && override === undefined;
 
   return (
     <Card
@@ -20,14 +24,23 @@ export default function DelayedRoutesCard({ routes: override }: Props) {
         </span>
       }
     >
-      {state.error ? (
-        <p className="text-sm text-red-400">
-          Error loading routes: {state.error.message}
+      {state.error && override === undefined ? (
+        <InlineError
+          error={state.error}
+          resource="delayed routes"
+          onRetry={state.retry}
+        />
+      ) : isLoading ? (
+        <p className="text-sm text-stone-400 dark:text-slate-500 animate-pulse">
+          Loading routes…
         </p>
       ) : routes.length === 0 ? (
-        <p className="text-sm text-slate-400">No delayed routes.</p>
+        <p className="text-sm text-stone-400 dark:text-slate-400">
+          No delayed routes at this time.
+        </p>
       ) : (
-        <ul className="divide-y divide-white/5">
+        /* Borders are on each RouteRow — no extra divide-y needed */
+        <ul>
           {routes.map((r) => (
             <RouteRow key={r.id} route={r} />
           ))}

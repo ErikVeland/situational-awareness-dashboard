@@ -1,7 +1,7 @@
 [
   {
     "id": "route-001",
-    "name": "Monash Fwy Out",
+    "name": "Monash Fwy Outbound",
     "via": ["Kings Way", "EastLink"],
     "distanceKm": 13,
     "delayMinutes": 45,
@@ -9,11 +9,11 @@
   },
   {
     "id": "route-002",
-    "name": "Monash Fwy Out",
-    "via": ["Kings Way", "EastLink"],
+    "name": "Monash Fwy Inbound",
+    "via": ["EastLink", "Kings Way"],
     "distanceKm": 15,
     "delayMinutes": 28,
-    "severity": "high"
+    "severity": "medium"
   },
   {
     "id": "route-003",
@@ -21,7 +21,7 @@
     "via": ["West Gate Fwy", "Western Fwy"],
     "distanceKm": 5,
     "delayMinutes": 5,
-    "severity": "medium"
+    "severity": "low"
   },
   {
     "id": "route-004",
