@@ -47,7 +47,7 @@ Then open http://localhost:5173.
 - **Delayed routes** — `DelayedRoutesCard.tsx` + `RouteRow.tsx` +
   `SeverityDot.tsx`. Severity is a discriminated union mapped to
   Tailwind classes via `SEVERITY_CLASS satisfies Record<Severity,
-string>`: `high` is red, `medium` is amber, `low` is slate.
+string>`: `high` is red, `medium` is amber, `low` is gray.
 - **Ramp chart** — `RampChartCard.tsx` + `DonutChart.tsx`, subscribed
   via `useRampData()`, updated on every 500 ms tick.
 - **History sparkline** — `Sparkline.tsx` plots the last 120 points
@@ -87,7 +87,7 @@ string>`. Missing or mistyped keys fail the build.
   stable.
 - **UI fidelity** — dark-theme Tailwind palette, Roboto, responsive
   grid that collapses to a single column on small screens.
-- **Testing** — 59 passing specs; fake timers for the 500 ms stream
+- **Testing** — 61 passing specs; fake timers for the 500 ms stream
   and the 1 s clock; SVG edge cases; pause invariant.
 - **Code quality** — small files, API → hook → card → primitive,
   JSDoc on every hook.
@@ -116,7 +116,7 @@ string>`. Missing or mistyped keys fail the build.
 src/
 ├── api/                          # Provided mock API + types + Zod schemas
 ├── data/                         # JSON fixtures (hardcoded per brief)
-├── utils/                        # Provided pure transforms + tests
+├── utils/                        # Pure helpers: ramp transforms, date formatting
 ├── hooks/
 │   ├── useAsyncData.ts           # Generic Promise → state, with retry()
 │   ├── useWeather.ts             # Thin wrappers around the mock APIs
@@ -214,8 +214,6 @@ I memoise when there's a concrete reason, not reflexively:
   math).
 - **Stable callbacks.** `togglePause` is wrapped in `useCallback` so
   a future `React.memo` on `<PauseButton>` won't break.
-- **Header date formatting** is `useMemo`'d — cheap, but rendered
-  every second, so avoiding string churn is worth it.
 
 The sparkline buffer itself doesn't need React-level memoisation:
 `appendSparklinePoint` returns a new array per tick, so `Object.is`
@@ -270,9 +268,6 @@ npm test
   pulse, the donut stroke-dasharray transitions, the legend highlight
   crossfades) are all hand-rolled in CSS. Downside: no hover tooltips,
   no axes. For a real product I'd reach for Recharts.
-  transitions on the legend), so the gap vs. a charting library is
-  really just hover tooltips and axes. For a real product I'd reach
-  for Recharts.
 - **`useRampData` returns a value, not a Provider.** The stream is a
   singleton (one interval) but hooks re-run the subscription on each
   call. Centralising it in `<Dashboard>` and passing `ramp` down one

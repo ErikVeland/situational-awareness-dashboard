@@ -17,54 +17,91 @@
 
 :root {
   /* ── Light (creamy daylight) ── */
-  --color-bg:        251 247 240;   /* #fbf7f0  warm parchment         */
-  --color-bg-card:   255 253 248;   /* #fffdf8  warm near-white        */
-  --color-bg-muted:  242 235 221;   /* #f2ebdd  warm tan               */
+  --color-bg: 251 247 240; /* #fbf7f0  warm parchment         */
+  --color-bg-card: 255 253 248; /* #fffdf8  warm near-white        */
+  --color-bg-muted: 242 235 221; /* #f2ebdd  warm tan               */
 }
 
 :root.dark {
   /* ── Dark (midnight navy) ── */
-  --color-bg:        11  18  32;    /* #0b1220                         */
-  --color-bg-card:   20  26  43;    /* #141a2b                         */
-  --color-bg-muted:  27  34  53;    /* #1b2235                         */
+  --color-bg: 11 18 32; /* #0b1220                         */
+  --color-bg-card: 20 26 43; /* #141a2b                         */
+  --color-bg-muted: 27 34 53; /* #1b2235                         */
 }
 
 /* ─── Base ───────────────────────────────────────────────────────────────── */
 
-html, body, #root { height: 100%; }
+html,
+body,
+#root {
+  height: 100%;
+}
 
 body {
   margin: 0;
   font-family: 'Roboto', system-ui, sans-serif;
   background-color: rgb(var(--color-bg));
   color: #1c1917; /* warm near-black — overridden by dark: classes in components */
-  transition: background-color 0.25s ease, color 0.25s ease;
+  transition:
+    background-color 0.25s ease,
+    color 0.25s ease;
 }
 
 /* Dark base text */
-:root.dark body { color: #f1f5f9; /* slate-100 */ }
+:root.dark body {
+  color: #f1f5f9; /* slate-100 */
+}
 
 /* ── Ambient gradient ── */
 :root:not(.dark) body {
   background-image:
-    radial-gradient(ellipse at 75% -5%,  rgba(251, 191,  36, 0.08), transparent 45%),
-    radial-gradient(ellipse at  5% 100%, rgba(245, 158,  11, 0.05), transparent 55%);
+    radial-gradient(
+      ellipse at 75% -5%,
+      rgba(251, 191, 36, 0.08),
+      transparent 45%
+    ),
+    radial-gradient(
+      ellipse at 5% 100%,
+      rgba(245, 158, 11, 0.05),
+      transparent 55%
+    );
 }
 
 :root.dark body {
   background-image:
-    radial-gradient(ellipse at 20% -10%, rgba( 56, 189, 248, 0.06), transparent 50%),
-    radial-gradient(ellipse at 100% 100%, rgba(167, 139, 250, 0.05), transparent 60%);
+    radial-gradient(
+      ellipse at 20% -10%,
+      rgba(56, 189, 248, 0.06),
+      transparent 50%
+    ),
+    radial-gradient(
+      ellipse at 100% 100%,
+      rgba(167, 139, 250, 0.05),
+      transparent 60%
+    );
 }
 
 /* ─── Scrollbars ─────────────────────────────────────────────────────────── */
 
-::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
 
-:root.dark      ::-webkit-scrollbar-thumb       { background: rgba(255,255,255,0.08); border-radius: 4px; }
-:root.dark      ::-webkit-scrollbar-thumb:hover  { background: rgba(255,255,255,0.18); }
-:root:not(.dark)::-webkit-scrollbar-thumb       { background: rgba(180,160,120,0.30); border-radius: 4px; }
-:root:not(.dark)::-webkit-scrollbar-thumb:hover  { background: rgba(180,160,120,0.50); }
+:root.dark ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+}
+:root.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.18);
+}
+:root:not(.dark)::-webkit-scrollbar-thumb {
+  background: rgba(180, 160, 120, 0.3);
+  border-radius: 4px;
+}
+:root:not(.dark)::-webkit-scrollbar-thumb:hover {
+  background: rgba(180, 160, 120, 0.5);
+}
 
 /* ─── Sparkline tick animation ───────────────────────────────────────────── */
 /*
@@ -73,8 +110,12 @@ body {
  * Duration (0.35 s) is intentionally shorter than the API interval.
  */
 @keyframes sparklineTick {
-  from { opacity: 0.6; }
-  to   { opacity: 1;   }
+  from {
+    opacity: 0.6;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 /* ─── Focus ring ─────────────────────────────────────────────────────────── */

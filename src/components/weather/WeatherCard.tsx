@@ -4,18 +4,7 @@ import InlineError from '../InlineError';
 import WeatherIcon from './WeatherIcon';
 import type { WeatherData } from '../../api/types';
 import { useWeather } from '../../hooks/useWeather';
-
-/** Returns the English ordinal suffix for a day number via Intl.PluralRules. */
-function dayOrdinal(n: number): string {
-  const rules = new Intl.PluralRules('en', { type: 'ordinal' });
-  const suffixes: Record<string, string> = {
-    one: 'st',
-    two: 'nd',
-    few: 'rd',
-    other: 'th',
-  };
-  return suffixes[rules.select(n)] ?? 'th';
-}
+import { dayOrdinal } from '../../utils/formatDate';
 
 /**
  * Formats an ISO datetime string as "Tue 16th 3:46 PM" using Intl.DateTimeFormat

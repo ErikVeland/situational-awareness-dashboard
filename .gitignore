@@ -21,3 +21,6 @@ coverage
 dark-mode-*.png
 light-mode-*.png
 light-fresh-load.png
+
+# Personal interview notes
+INTERVIEW_NOTES.md

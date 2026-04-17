@@ -1,23 +1,12 @@
 import { useClock } from '../hooks/useClock';
 import { useTheme } from '../hooks/useTheme';
+import { dayOrdinal } from '../utils/formatDate';
 
 interface HeaderProps {
   /** Whether the live ramp stream is currently active (not paused). */
   isLive: boolean;
   /** Called when the user presses the pause keyboard shortcut. */
   onTogglePause: () => void;
-}
-
-/** Returns the English ordinal suffix for a day number via Intl.PluralRules. */
-function dayOrdinal(n: number): string {
-  const rules = new Intl.PluralRules('en', { type: 'ordinal' });
-  const suffixes: Record<string, string> = {
-    one: 'st',
-    two: 'nd',
-    few: 'rd',
-    other: 'th',
-  };
-  return suffixes[rules.select(n)] ?? 'th';
 }
 
 /**
