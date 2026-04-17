@@ -40,7 +40,9 @@ describe('useAsyncData', () => {
 
     await waitFor(() => expect(result.current.data).toBe(1));
 
-    act(() => { result.current.retry(); });
+    act(() => {
+      result.current.retry();
+    });
     await waitFor(() => expect(result.current.data).toBe(2));
     expect(factory).toHaveBeenCalledTimes(2);
   });
@@ -51,9 +53,7 @@ describe('useAsyncData', () => {
       new Promise<number>((res) => {
         resolveFn = res;
       });
-    const { result, unmount } = renderHook(() =>
-      useAsyncData<number>(factory),
-    );
+    const { result, unmount } = renderHook(() => useAsyncData<number>(factory));
 
     unmount();
     await act(async () => {

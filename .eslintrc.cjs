@@ -5,6 +5,8 @@ module.exports = {
     'eslint:recommended',
     'plugin:@typescript-eslint/recommended',
     'plugin:react-hooks/recommended',
+    // Must come last so it disables any stylistic rules that conflict with Prettier.
+    'prettier',
   ],
   ignorePatterns: ['dist', '.eslintrc.cjs', 'node_modules', 'mock-data'],
   parser: '@typescript-eslint/parser',

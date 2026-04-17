@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { render } from '@testing-library/react';
-import Sparkline, { buildSparklinePath } from './Sparkline';
+import Sparkline from './Sparkline';
+import { buildSparklinePath } from './Sparkline.geom';
 
 describe('buildSparklinePath', () => {
   it('returns empty string for empty input', () => {

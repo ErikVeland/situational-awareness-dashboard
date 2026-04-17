@@ -12,7 +12,10 @@ interface HeaderProps {
 function dayOrdinal(n: number): string {
   const rules = new Intl.PluralRules('en', { type: 'ordinal' });
   const suffixes: Record<string, string> = {
-    one: 'st', two: 'nd', few: 'rd', other: 'th',
+    one: 'st',
+    two: 'nd',
+    few: 'rd',
+    other: 'th',
   };
   return suffixes[rules.select(n)] ?? 'th';
 }
@@ -22,10 +25,15 @@ function dayOrdinal(n: number): string {
  * the output respects the user's locale for weekday/month names and time.
  */
 function formatHeaderDate(d: Date): string {
-  const weekday = new Intl.DateTimeFormat('en-AU', { weekday: 'short' }).format(d);
-  const month   = new Intl.DateTimeFormat('en-AU', { month: 'short' }).format(d);
-  const time    = new Intl.DateTimeFormat('en-AU', { hour: 'numeric', minute: '2-digit' }).format(d);
-  const day     = d.getDate();
+  const weekday = new Intl.DateTimeFormat('en-AU', { weekday: 'short' }).format(
+    d,
+  );
+  const month = new Intl.DateTimeFormat('en-AU', { month: 'short' }).format(d);
+  const time = new Intl.DateTimeFormat('en-AU', {
+    hour: 'numeric',
+    minute: '2-digit',
+  }).format(d);
+  const day = d.getDate();
   return `${weekday} ${day}${dayOrdinal(day)} ${month} ${time}`;
 }
 
@@ -40,7 +48,18 @@ function SunIcon() {
         const y1 = 12 + Math.sin(r) * 6.5;
         const x2 = 12 + Math.cos(r) * 9;
         const y2 = 12 + Math.sin(r) * 9;
-        return <line key={deg} x1={x1} y1={y1} x2={x2} y2={y2} stroke="currentColor" strokeWidth="2" strokeLinecap="round" />;
+        return (
+          <line
+            key={deg}
+            x1={x1}
+            y1={y1}
+            x2={x2}
+            y2={y2}
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+          />
+        );
       })}
     </svg>
   );
@@ -49,7 +68,13 @@ function SunIcon() {
 /** Moon icon for dark mode. */
 function MoonIcon() {
   return (
-    <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden>
+    <svg
+      viewBox="0 0 24 24"
+      width="16"
+      height="16"
+      fill="currentColor"
+      aria-hidden
+    >
       <path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79z" />
     </svg>
   );
@@ -75,12 +100,18 @@ export default function Header({ isLive, onTogglePause }: HeaderProps) {
         <button
           type="button"
           onClick={toggleTheme}
-          aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-          title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+          aria-label={
+            theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'
+          }
+          title={
+            theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'
+          }
           className="flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs text-slate-500 hover:bg-slate-200/60 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-white/10 dark:hover:text-slate-200 transition"
         >
           {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
-          <span className="hidden sm:inline">{theme === 'dark' ? 'Light' : 'Dark'}</span>
+          <span className="hidden sm:inline">
+            {theme === 'dark' ? 'Light' : 'Dark'}
+          </span>
         </button>
 
         {/* LIVE / PAUSED badge — aria-live so screen readers announce changes */}

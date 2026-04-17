@@ -21,7 +21,9 @@ export default function StatCard({
 
   return (
     <div className="rounded-lg bg-bg-muted/60 ring-1 ring-bg-muted px-4 py-3">
-      <p className="text-xs tracking-wider text-slate-500 dark:text-slate-400">{label}</p>
+      <p className="text-xs tracking-wider text-slate-500 dark:text-slate-400">
+        {label}
+      </p>
       <p className={`mt-2 text-3xl font-light leading-none ${color}`}>
         {formatted}
         {unit && (

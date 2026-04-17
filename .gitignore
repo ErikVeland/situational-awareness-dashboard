@@ -13,3 +13,11 @@ coverage
 # Local agent/tool state
 .claude/
 .playwright-mcp/
+
+# TypeScript build-info cache (emitted by `tsc -b`, not source)
+*.tsbuildinfo
+
+# Local screenshots (kept out of source control)
+dark-mode-*.png
+light-mode-*.png
+light-fresh-load.png

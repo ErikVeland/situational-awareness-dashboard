@@ -1,0 +1,6 @@
+# Run lint-staged on staged files (ESLint --fix + Prettier --write).
+# Fast-fails on unfixable lint errors, then runs typecheck on the whole
+# project so a type error in an untouched file can't sneak in via a
+# commit that only touches other files.
+npx lint-staged
+npm run typecheck

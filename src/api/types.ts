@@ -66,9 +66,9 @@ export type Severity = 'low' | 'medium' | 'high';
 
 /** Type-safe map from severity → Tailwind CSS class */
 export const SEVERITY_CLASS = {
-  low:    'bg-gray-500',
+  low: 'bg-gray-500',
   medium: 'bg-amber-400',
-  high:   'bg-red-500',
+  high: 'bg-red-500',
 } satisfies Record<Severity, string>;
 
 export interface DelayedRoute {

@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import type { SparklinePoint } from '../../api/types';
+import { buildSparklinePath } from './Sparkline.geom';
 
 interface SparklineProps {
   points: SparklinePoint[];
@@ -9,40 +10,6 @@ interface SparklineProps {
   height?: number;
   /** Domain cap — values are clamped into [0, max]. */
   max?: number;
-}
-
-/**
- * Constructs the `d` attribute for a simple polyline through the provided
- * points. Returns an empty string when there is no data so React renders
- * nothing.
- */
-export function buildSparklinePath(
-  points: SparklinePoint[],
-  width: number,
-  height: number,
-  max: number,
-): string {
-  if (points.length === 0) return '';
-
-  if (points.length === 1) {
-    const p = points[0]!;
-    const y = height - (Math.max(0, Math.min(max, p.value)) / max) * height;
-    return `M 0 ${y} L ${width} ${y}`;
-  }
-
-  const first = points[0]!;
-  const last = points[points.length - 1]!;
-  const tMin = first.timestamp;
-  const tMax = last.timestamp;
-  const tSpan = tMax - tMin || 1;
-
-  const segs = points.map((p, i) => {
-    const x = ((p.timestamp - tMin) / tSpan) * width;
-    const clamped = Math.max(0, Math.min(max, p.value));
-    const y = height - (clamped / max) * height;
-    return `${i === 0 ? 'M' : 'L'} ${x.toFixed(2)} ${y.toFixed(2)}`;
-  });
-  return segs.join(' ');
 }
 
 export default function Sparkline({
@@ -66,9 +33,8 @@ export default function Sparkline({
     const tMax = last.timestamp;
     const tSpan = tMax - tMin || 1;
     const xFirst = 0;
-    const xLast = points.length === 1
-      ? width
-      : ((last.timestamp - tMin) / tSpan) * width;
+    const xLast =
+      points.length === 1 ? width : ((last.timestamp - tMin) / tSpan) * width;
     return `${d} L ${xLast.toFixed(2)} ${height} L ${xFirst.toFixed(2)} ${height} Z`;
   }, [d, points, width, height]);
 
@@ -80,7 +46,8 @@ export default function Sparkline({
   // Key off the latest timestamp so that React remounts the paths on each
   // tick, triggering the CSS @keyframes entrance animation — a subtle
   // brightness pulse that signals live data without distracting the user.
-  const tickKey = points.length > 0 ? points[points.length - 1]!.timestamp : 'empty';
+  const tickKey =
+    points.length > 0 ? points[points.length - 1]!.timestamp : 'empty';
 
   return (
     <svg
@@ -100,7 +67,10 @@ export default function Sparkline({
       </defs>
 
       {/* key causes remount on each tick, restarting the CSS animation */}
-      <g key={tickKey} style={{ animation: 'sparklineTick 0.35s ease forwards' }}>
+      <g
+        key={tickKey}
+        style={{ animation: 'sparklineTick 0.35s ease forwards' }}
+      >
         {areaD && <path d={areaD} fill={`url(#${gradId})`} />}
         {d && (
           <path

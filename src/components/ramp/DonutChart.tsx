@@ -2,68 +2,19 @@ import { useMemo } from 'react';
 import type { Algorithm, AlgorithmDistribution } from '../../api/types';
 import { ALGORITHMS } from '../../api/types';
 import { ALGORITHM_COLOR } from '../../theme/algorithmColors';
+import { polar } from './DonutChart.geom';
 
-// ─── Geometry constants (kept in sync with the path-based fallback below) ────
+// ─── Geometry constants ─────────────────────────────────────────────────────
 
 /** Midpoint radius of the ring (pixels, in the SVG viewBox space). */
 const RING_RADIUS = 84;
-/** Ring thickness in the same space: equals rOuter * thickness (100 * 0.32). */
+/** Ring thickness in the same space. */
 const RING_WIDTH = 32;
 /** Full circumference of the ring at RING_RADIUS. */
 const CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS; // ≈ 527.79
 /** Radius at which percentage labels are placed (just outside the ring). */
 const LABEL_RADIUS = 118;
 const TAU = Math.PI * 2;
-
-// ─── buildArcPath (exported for unit tests, not used in rendering) ────────────
-
-const EPSILON = 1e-3;
-
-function polar(cx: number, cy: number, r: number, angleRad: number): [number, number] {
-  return [cx + r * Math.sin(angleRad), cy - r * Math.cos(angleRad)];
-}
-
-/**
- * Builds an SVG arc `d` string for an annulus sector (donut slice).
- * Kept as a pure export so existing geometry tests don't change.
- * The component itself now uses stroke-dasharray circles for CSS transitions.
- */
-export function buildArcPath(
-  cx: number,
-  cy: number,
-  rOuter: number,
-  rInner: number,
-  startAngle: number,
-  endAngle: number,
-): string {
-  const sweep = endAngle - startAngle;
-  if (sweep <= EPSILON) return '';
-
-  if (sweep >= TAU - EPSILON) {
-    return [
-      `M ${cx} ${cy - rOuter}`,
-      `A ${rOuter} ${rOuter} 0 1 1 ${cx} ${cy + rOuter}`,
-      `A ${rOuter} ${rOuter} 0 1 1 ${cx} ${cy - rOuter} Z`,
-      `M ${cx} ${cy - rInner}`,
-      `A ${rInner} ${rInner} 0 1 0 ${cx} ${cy + rInner}`,
-      `A ${rInner} ${rInner} 0 1 0 ${cx} ${cy - rInner} Z`,
-    ].join(' ');
-  }
-
-  const [x0Outer, y0Outer] = polar(cx, cy, rOuter, startAngle);
-  const [x1Outer, y1Outer] = polar(cx, cy, rOuter, endAngle);
-  const [x1Inner, y1Inner] = polar(cx, cy, rInner, endAngle);
-  const [x0Inner, y0Inner] = polar(cx, cy, rInner, startAngle);
-  const largeArc = sweep > Math.PI ? 1 : 0;
-
-  return [
-    `M ${x0Outer} ${y0Outer}`,
-    `A ${rOuter} ${rOuter} 0 ${largeArc} 1 ${x1Outer} ${y1Outer}`,
-    `L ${x1Inner} ${y1Inner}`,
-    `A ${rInner} ${rInner} 0 ${largeArc} 0 ${x0Inner} ${y0Inner}`,
-    'Z',
-  ].join(' ');
-}
 
 // ─── Segment computation ──────────────────────────────────────────────────────
 

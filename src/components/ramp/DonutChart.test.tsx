@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { render } from '@testing-library/react';
-import DonutChart, { buildArcPath } from './DonutChart';
+import DonutChart from './DonutChart';
+import { buildArcPath } from './DonutChart.geom';
 import type { AlgorithmDistribution } from '../../api/types';
 
 const TAU = Math.PI * 2;
@@ -84,10 +85,10 @@ describe('<DonutChart>', () => {
     const { container } = render(
       <DonutChart distribution={dist} dominantAlgorithm="Algorithm 1" />,
     );
-    const circles = container.querySelectorAll('circle');
+    const circles = container.querySelectorAll<SVGCircleElement>('circle');
     // The first circle (Algorithm 1, dominant) should have a drop-shadow filter
-    expect((circles[0] as SVGCircleElement).style.filter).toMatch(/drop-shadow/);
+    expect(circles[0]!.style.filter).toMatch(/drop-shadow/);
     // Non-dominant circles should not have a drop-shadow filter
-    expect((circles[1] as SVGCircleElement).style.filter).not.toMatch(/drop-shadow/);
+    expect(circles[1]!.style.filter).not.toMatch(/drop-shadow/);
   });
 });

@@ -27,11 +27,26 @@ describe('rampsToDistribution', () => {
 
   it('distributes evenly across 5 algorithms when counts are equal', () => {
     const ramps: Ramp[] = [
-      ...Array.from({ length: 10 }, (_, i) => ({ id: `r${i}`, algorithm: 'Algorithm 1' as const })),
-      ...Array.from({ length: 10 }, (_, i) => ({ id: `r${i+10}`, algorithm: 'Algorithm 2' as const })),
-      ...Array.from({ length: 10 }, (_, i) => ({ id: `r${i+20}`, algorithm: 'Algorithm 3' as const })),
-      ...Array.from({ length: 10 }, (_, i) => ({ id: `r${i+30}`, algorithm: 'Algorithm 4' as const })),
-      ...Array.from({ length: 10 }, (_, i) => ({ id: `r${i+40}`, algorithm: 'Algorithm 5' as const })),
+      ...Array.from({ length: 10 }, (_, i) => ({
+        id: `r${i}`,
+        algorithm: 'Algorithm 1' as const,
+      })),
+      ...Array.from({ length: 10 }, (_, i) => ({
+        id: `r${i + 10}`,
+        algorithm: 'Algorithm 2' as const,
+      })),
+      ...Array.from({ length: 10 }, (_, i) => ({
+        id: `r${i + 20}`,
+        algorithm: 'Algorithm 3' as const,
+      })),
+      ...Array.from({ length: 10 }, (_, i) => ({
+        id: `r${i + 30}`,
+        algorithm: 'Algorithm 4' as const,
+      })),
+      ...Array.from({ length: 10 }, (_, i) => ({
+        id: `r${i + 40}`,
+        algorithm: 'Algorithm 5' as const,
+      })),
     ];
     const dist = rampsToDistribution(ramps);
     expect(dist['Algorithm 1']).toBe(20);
@@ -108,14 +123,23 @@ describe('generateSparklineSeed', () => {
   });
 
   it('spaces points by intervalMs', () => {
-    const seed = generateSparklineSeed({ count: 3, intervalMs: 500, endTime: 10000 });
+    const seed = generateSparklineSeed({
+      count: 3,
+      intervalMs: 500,
+      endTime: 10000,
+    });
     expect(seed[1]!.timestamp - seed[0]!.timestamp).toBe(500);
     expect(seed[2]!.timestamp - seed[1]!.timestamp).toBe(500);
     expect(seed[2]!.timestamp).toBe(10000);
   });
 
   it('keeps all values within 0–100', () => {
-    const seed = generateSparklineSeed({ count: 200, baseValue: 50, amplitude: 40, jitter: 20 });
+    const seed = generateSparklineSeed({
+      count: 200,
+      baseValue: 50,
+      amplitude: 40,
+      jitter: 20,
+    });
     seed.forEach(({ value }) => {
       expect(value).toBeGreaterThanOrEqual(0);
       expect(value).toBeLessThanOrEqual(100);
@@ -123,7 +147,12 @@ describe('generateSparklineSeed', () => {
   });
 
   it('centres output around baseValue (rough check)', () => {
-    const seed = generateSparklineSeed({ count: 200, baseValue: 30, amplitude: 2, jitter: 1 });
+    const seed = generateSparklineSeed({
+      count: 200,
+      baseValue: 30,
+      amplitude: 2,
+      jitter: 1,
+    });
     const avg = seed.reduce((s, p) => s + p.value, 0) / seed.length;
     expect(avg).toBeGreaterThan(25);
     expect(avg).toBeLessThan(35);
@@ -136,11 +165,11 @@ describe('trimToWindow', () => {
   it('returns only points within the window', () => {
     const now = 10_000;
     const points = [
-      { timestamp: 1000, value: 10 },   // outside 60s window
-      { timestamp: 5000, value: 20 },   // outside
-      { timestamp: 8000, value: 30 },   // inside (within 2s)
-      { timestamp: 9500, value: 40 },   // inside
-      { timestamp: 10000, value: 50 },  // inside
+      { timestamp: 1000, value: 10 }, // outside 60s window
+      { timestamp: 5000, value: 20 }, // outside
+      { timestamp: 8000, value: 30 }, // inside (within 2s)
+      { timestamp: 9500, value: 40 }, // inside
+      { timestamp: 10000, value: 50 }, // inside
     ];
     const result = trimToWindow(points, 2_000, now);
     expect(result).toHaveLength(3);

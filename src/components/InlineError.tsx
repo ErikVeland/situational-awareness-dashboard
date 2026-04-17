@@ -26,30 +26,36 @@ function WarningIcon() {
 }
 
 /** Maps an Error object to a user-readable title and message. */
-function categorise(error: Error, resource: string): { title: string; message: string } {
+function categorise(
+  error: Error,
+  resource: string,
+): { title: string; message: string } {
   // Zod validation errors
   if (error.name === 'ZodError') {
     return {
-      title:   `Invalid ${resource} format`,
-      message: 'The service returned data that doesn\'t match the expected schema. This usually means the API was updated — contact support if it persists.',
+      title: `Invalid ${resource} format`,
+      message:
+        "The service returned data that doesn't match the expected schema. This usually means the API was updated — contact support if it persists.",
     };
   }
 
   // Abort / timeout
   if (error.name === 'AbortError') {
     return {
-      title:   `${resource} request timed out`,
-      message: 'The server took too long to respond. Check your network and try again.',
+      title: `${resource} request timed out`,
+      message:
+        'The server took too long to respond. Check your network and try again.',
     };
   }
 
   // Network / fetch errors (TypeError from fetch API, or message-based match)
   if (
-    (error instanceof TypeError && /fetch|network|failed to load/i.test(error.message)) ||
+    (error instanceof TypeError &&
+      /fetch|network|failed to load/i.test(error.message)) ||
     /fetch|network|failed to load/i.test(error.message)
   ) {
     return {
-      title:   `Cannot reach ${resource} service`,
+      title: `Cannot reach ${resource} service`,
       message: 'A network error occurred. Check your connection and try again.',
     };
   }
@@ -57,26 +63,26 @@ function categorise(error: Error, resource: string): { title: string; message: s
   // HTTP-like status errors
   if (/\b(404|not found)\b/i.test(error.message)) {
     return {
-      title:   `${resource} not found`,
+      title: `${resource} not found`,
       message: 'The requested resource could not be found (HTTP 404).',
     };
   }
   if (/\b(401|403|unauthori[sz]ed|forbidden)\b/i.test(error.message)) {
     return {
-      title:   `${resource} access denied`,
+      title: `${resource} access denied`,
       message: 'You do not have permission to access this resource.',
     };
   }
   if (/\b(5\d\d|server error|internal error)\b/i.test(error.message)) {
     return {
-      title:   `${resource} service error`,
+      title: `${resource} service error`,
       message: 'The server encountered an error. Please try again in a moment.',
     };
   }
 
   // Fallback — include the raw message so developers can triage
   return {
-    title:   `Failed to load ${resource}`,
+    title: `Failed to load ${resource}`,
     message: error.message || 'An unexpected error occurred.',
   };
 }
@@ -87,7 +93,11 @@ function categorise(error: Error, resource: string): { title: string; message: s
  * Shows a contextual title, a human-readable description derived from the
  * error type, and an optional Retry button.
  */
-export default function InlineError({ error, resource, onRetry }: InlineErrorProps) {
+export default function InlineError({
+  error,
+  resource,
+  onRetry,
+}: InlineErrorProps) {
   const { title, message } = categorise(error, resource);
 
   return (

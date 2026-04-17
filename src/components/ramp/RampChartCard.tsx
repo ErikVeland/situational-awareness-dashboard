@@ -78,11 +78,12 @@ export default function RampChartCard({ state }: Props) {
                   aria-hidden
                   className="inline-block rounded-full flex-shrink-0"
                   style={{
-                    width:  isDominant ? 10 : 8,
+                    width: isDominant ? 10 : 8,
                     height: isDominant ? 10 : 8,
                     backgroundColor: color,
                     boxShadow: isDominant ? `0 0 6px ${color}bb` : 'none',
-                    transition: 'width 0.3s ease, height 0.3s ease, box-shadow 0.3s ease',
+                    transition:
+                      'width 0.3s ease, height 0.3s ease, box-shadow 0.3s ease',
                   }}
                 />
                 <span

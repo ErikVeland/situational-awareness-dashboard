@@ -13,20 +13,26 @@ import { useRampData } from '../hooks/useRampData';
  */
 export default function Dashboard() {
   const ramp = useRampData();
+  const { togglePause } = ramp;
 
   // Global keyboard shortcut: press P to toggle pause/resume.
   // Ignored when focus is inside a form control or the pause button itself.
   useEffect(() => {
     const handleKey = (e: KeyboardEvent): void => {
       if (e.key !== 'p' && e.key !== 'P') return;
-      const tag = (e.target as HTMLElement).tagName;
-      if (['INPUT', 'TEXTAREA', 'SELECT', 'BUTTON'].includes(tag)) return;
+      const target = e.target;
+      if (
+        target instanceof HTMLElement &&
+        ['INPUT', 'TEXTAREA', 'SELECT', 'BUTTON'].includes(target.tagName)
+      ) {
+        return;
+      }
       e.preventDefault();
-      ramp.togglePause();
+      togglePause();
     };
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
-  }, [ramp.togglePause]);
+  }, [togglePause]);
 
   return (
     <>

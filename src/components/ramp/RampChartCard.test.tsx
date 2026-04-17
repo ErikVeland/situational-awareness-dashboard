@@ -30,6 +30,7 @@ function makeState(overrides: Partial<RampDataState> = {}): RampDataState {
     paused: false,
     latestRampCount: 50,
     latestReceivedAt: Date.now(),
+    streamError: null,
     togglePause: vi.fn(),
     ...overrides,
   };

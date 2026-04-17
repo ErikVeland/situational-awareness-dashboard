@@ -42,13 +42,21 @@ export interface RampDataState {
   togglePause: () => void;
 }
 
-const EMPTY_DISTRIBUTION: AlgorithmDistribution = Object.fromEntries(
-  ALGORITHMS.map((a) => [a, 0]),
-) as AlgorithmDistribution;
+const EMPTY_DISTRIBUTION: AlgorithmDistribution = {
+  'Algorithm 1': 0,
+  'Algorithm 2': 0,
+  'Algorithm 3': 0,
+  'Algorithm 4': 0,
+  'Algorithm 5': 0,
+};
 
-const EMPTY_HISTORY: Record<Algorithm, SparklinePoint[]> = Object.fromEntries(
-  ALGORITHMS.map((a) => [a, [] as SparklinePoint[]]),
-) as Record<Algorithm, SparklinePoint[]>;
+const EMPTY_HISTORY: Record<Algorithm, SparklinePoint[]> = {
+  'Algorithm 1': [],
+  'Algorithm 2': [],
+  'Algorithm 3': [],
+  'Algorithm 4': [],
+  'Algorithm 5': [],
+};
 
 /** Pick the algorithm with the largest share in the distribution. */
 export function pickDominant(dist: AlgorithmDistribution): Algorithm {
@@ -125,9 +133,7 @@ export function useRampData(): RampDataState {
         // Surface processing errors in the UI without crashing the stream.
         // The interval keeps ticking — if the next callback succeeds the
         // error clears automatically.
-        setStreamError(
-          err instanceof Error ? err : new Error(String(err)),
-        );
+        setStreamError(err instanceof Error ? err : new Error(String(err)));
       }
     };
 

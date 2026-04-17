@@ -24,10 +24,10 @@ export function useAsyncData<T>(
   deps: ReadonlyArray<unknown> = [],
 ): AsyncState<T> {
   const [state, setState] = useState<AsyncState<T>>({
-    data:    null,
+    data: null,
     loading: true,
-    error:   null,
-    retry:   () => {},
+    error: null,
+    retry: () => {},
   });
 
   const [retryCount, setRetryCount] = useState(0);
@@ -50,9 +50,9 @@ export function useAsyncData<T>(
       .catch((err: unknown) => {
         if (!cancelled) {
           setState({
-            data:    null,
+            data: null,
             loading: false,
-            error:   err instanceof Error ? err : new Error(String(err)),
+            error: err instanceof Error ? err : new Error(String(err)),
             retry,
           });
         }

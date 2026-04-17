@@ -20,13 +20,14 @@ import {
 export function rampsToDistribution(ramps: Ramp[]): AlgorithmDistribution {
   if (ramps.length === 0) {
     return Object.fromEntries(
-      ALGORITHMS.map((a) => [a, 0])
+      ALGORITHMS.map((a) => [a, 0]),
     ) as AlgorithmDistribution;
   }
 
-  const counts = Object.fromEntries(
-    ALGORITHMS.map((a) => [a, 0])
-  ) as Record<Algorithm, number>;
+  const counts = Object.fromEntries(ALGORITHMS.map((a) => [a, 0])) as Record<
+    Algorithm,
+    number
+  >;
 
   for (const ramp of ramps) {
     counts[ramp.algorithm]++;
@@ -34,7 +35,7 @@ export function rampsToDistribution(ramps: Ramp[]): AlgorithmDistribution {
 
   const total = ramps.length;
   return Object.fromEntries(
-    ALGORITHMS.map((a) => [a, Math.round((counts[a] / total) * 100)])
+    ALGORITHMS.map((a) => [a, Math.round((counts[a] / total) * 100)]),
   ) as AlgorithmDistribution;
 }
 
@@ -62,7 +63,7 @@ export const SPARKLINE_MAX_POINTS = 120;
 export function appendSparklinePoint(
   buffer: SparklinePoint[],
   value: number,
-  timestamp: number = Date.now()
+  timestamp: number = Date.now(),
 ): SparklinePoint[] {
   const next = [...buffer, { timestamp, value }];
   return next.length > SPARKLINE_MAX_POINTS
@@ -104,7 +105,7 @@ export function generateSparklineSeed({
     const wave = Math.sin(i * 0.18) * amplitude;
     const noise = (Math.random() - 0.5) * jitter * 2;
     const value = Math.round(
-      Math.max(2, Math.min(98, baseValue + wave + noise))
+      Math.max(2, Math.min(98, baseValue + wave + noise)),
     );
     return { timestamp, value };
   });
@@ -121,7 +122,7 @@ export function generateSparklineSeed({
 export function trimToWindow(
   buffer: SparklinePoint[],
   windowMs: number,
-  now: number = Date.now()
+  now: number = Date.now(),
 ): SparklinePoint[] {
   const cutoff = now - windowMs;
   return buffer.filter((p) => p.timestamp >= cutoff);

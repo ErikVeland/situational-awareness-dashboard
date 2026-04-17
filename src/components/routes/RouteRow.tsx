@@ -18,10 +18,14 @@ export default function RouteRow({ route }: RouteRowProps) {
         </p>
       </div>
       <div className="text-right">
-        <p className="text-xs text-stone-400 dark:text-slate-400">{route.distanceKm} km</p>
+        <p className="text-xs text-stone-400 dark:text-slate-400">
+          {route.distanceKm} km
+        </p>
         <p className="text-lg font-light tracking-tight text-stone-800 dark:text-slate-100">
           {route.delayMinutes}
-          <span className="ml-0.5 text-xs font-medium text-stone-400 dark:text-slate-400">min</span>
+          <span className="ml-0.5 text-xs font-medium text-stone-400 dark:text-slate-400">
+            min
+          </span>
         </p>
       </div>
     </li>

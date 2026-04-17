@@ -27,7 +27,7 @@ export default function NetworkSummaryCard({ summary: override }: Props) {
       ) : (
         <div className="grid grid-cols-2 gap-3">
           <StatCard label="Total ramps" value={summary.totalRamps} />
-          <StatCard label="Active"      value={summary.activeRamps} />
+          <StatCard label="Active" value={summary.activeRamps} />
           <StatCard
             label="Incidents"
             value={summary.incidents}

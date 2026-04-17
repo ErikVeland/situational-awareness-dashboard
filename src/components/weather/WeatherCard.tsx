@@ -9,7 +9,10 @@ import { useWeather } from '../../hooks/useWeather';
 function dayOrdinal(n: number): string {
   const rules = new Intl.PluralRules('en', { type: 'ordinal' });
   const suffixes: Record<string, string> = {
-    one: 'st', two: 'nd', few: 'rd', other: 'th',
+    one: 'st',
+    two: 'nd',
+    few: 'rd',
+    other: 'th',
   };
   return suffixes[rules.select(n)] ?? 'th';
 }
@@ -20,9 +23,14 @@ function dayOrdinal(n: number): string {
  */
 function formatDate(iso: string): string {
   const d = new Date(iso);
-  const weekday = new Intl.DateTimeFormat('en-AU', { weekday: 'short' }).format(d);
-  const time    = new Intl.DateTimeFormat('en-AU', { hour: 'numeric', minute: '2-digit' }).format(d);
-  const day     = d.getDate();
+  const weekday = new Intl.DateTimeFormat('en-AU', { weekday: 'short' }).format(
+    d,
+  );
+  const time = new Intl.DateTimeFormat('en-AU', {
+    hour: 'numeric',
+    minute: '2-digit',
+  }).format(d);
+  const day = d.getDate();
   return `${weekday} ${day}${dayOrdinal(day)} ${time}`;
 }
 
@@ -68,7 +76,11 @@ export default function WeatherCard({ data: dataOverride }: Props) {
       }
     >
       {state.error && !dataOverride ? (
-        <InlineError error={state.error} resource="weather data" onRetry={state.retry} />
+        <InlineError
+          error={state.error}
+          resource="weather data"
+          onRetry={state.retry}
+        />
       ) : !data ? (
         <p className="text-sm text-stone-400 dark:text-slate-500 animate-pulse">
           Loading weather…
@@ -76,21 +88,33 @@ export default function WeatherCard({ data: dataOverride }: Props) {
       ) : (
         <div className="grid grid-cols-[1fr_auto] gap-x-6 gap-y-1">
           <div>
-            <p className="text-sm text-stone-500 dark:text-slate-300">{data.city}</p>
+            <p className="text-sm text-stone-500 dark:text-slate-300">
+              {data.city}
+            </p>
             <p className="mt-1 text-6xl font-light leading-none tracking-tight text-stone-800 dark:text-slate-100">
               {data.temperature}
-              <span className="align-top text-3xl text-stone-400 dark:text-slate-400">°</span>
+              <span className="align-top text-3xl text-stone-400 dark:text-slate-400">
+                °
+              </span>
             </p>
-            <p className="mt-2 text-xs text-stone-400 dark:text-slate-400">{formattedDate}</p>
+            <p className="mt-2 text-xs text-stone-400 dark:text-slate-400">
+              {formattedDate}
+            </p>
           </div>
           <div className="flex items-start justify-end">
             <WeatherIcon condition={data.condition} />
           </div>
 
           <div className="col-span-2 mt-4 border-t border-stone-200/80 dark:border-white/5 pt-3">
-            <WeatherRow label="Humidity"       value={`${data.humidity}%`} />
-            <WeatherRow label="Chance of Rain" value={`${data.chanceOfRain}%`} />
-            <WeatherRow label="Wind"           value={`${data.windSpeed} ${data.windUnit}`} />
+            <WeatherRow label="Humidity" value={`${data.humidity}%`} />
+            <WeatherRow
+              label="Chance of Rain"
+              value={`${data.chanceOfRain}%`}
+            />
+            <WeatherRow
+              label="Wind"
+              value={`${data.windSpeed} ${data.windUnit}`}
+            />
             <WeatherRow
               label="Tomorrow"
               value={`${data.tomorrow.temperature}°`}
