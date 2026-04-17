@@ -258,6 +258,9 @@ npm test
 
 ## Tradeoffs
 
+<details>
+<summary>Five conscious tradeoffs (click to expand)</summary>
+
 - **Hand-rolled SVG instead of Recharts/Victory.** The donut and
   sparkline are ~100 LOC each. Upside: no runtime dependency, tiny
   bundle, deterministic output that snapshot-tests cleanly, and the
@@ -282,14 +285,17 @@ npm test
   from Tailwind Slate + jewel tones to match the feel. Layout,
   typography (Roboto), and placement match the mock.
 
+</details>
+
 ## Beyond the brief
 
 The brief is covered. Below is what I went further on and why.
 Everything here is optional — the brief still passes without any of
 it — but each piece earns its place by being either defensive, more
-accessible, or cheap operational polish.
+accessible, or cheap operational polish. Click any entry to expand it.
 
-### 1. Zod at the JSON boundary
+<details>
+<summary><strong>1. Zod at the JSON boundary</strong></summary>
 
 `src/api/schemas.ts`, used in every `src/api/get*.ts`.
 
@@ -303,7 +309,10 @@ schema-specific copy. Twenty lines per resource, and it's what stops
 a silent regression the day a real backend ships an incompatible
 response.
 
-### 2. App-root ErrorBoundary with retry
+</details>
+
+<details>
+<summary><strong>2. App-root ErrorBoundary with retry</strong></summary>
 
 `src/components/ErrorBoundary.tsx`, mounted in `src/App.tsx`.
 
@@ -312,7 +321,10 @@ the user gets a white screen indistinguishable from an outage. The
 boundary catches that, logs the stack, and shows a fallback card
 with a Retry button that resets its own state. ~60 LOC well spent.
 
-### 3. Per-widget InlineError with typed categorisation
+</details>
+
+<details>
+<summary><strong>3. Per-widget InlineError with typed categorisation</strong></summary>
 
 `src/components/InlineError.tsx`.
 
@@ -324,7 +336,10 @@ and picks copy accordingly: `ZodError` → "invalid format";
 includes the raw message so a developer can triage from a support
 log. Generic "something went wrong" copy is how you lose bug reports.
 
-### 4. `useAsyncData` exposes `retry()`
+</details>
+
+<details>
+<summary><strong>4. <code>useAsyncData</code> exposes <code>retry()</code></strong></summary>
 
 `src/hooks/useAsyncData.ts`.
 
@@ -332,7 +347,10 @@ The hook returns a stable `retry()` that re-runs the fetch without
 remounting the card, and `InlineError`'s Retry button is wired into
 it. A transient blip is one click, not a page reload.
 
-### 5. Ramp-stream error recovery
+</details>
+
+<details>
+<summary><strong>5. Ramp-stream error recovery</strong></summary>
 
 `src/hooks/useRampData.ts`, look for `streamError`.
 
@@ -344,7 +362,10 @@ so the next successful tick clears the error automatically.
 `setInterval` callbacks swallow exceptions in most runtimes — without
 the try/catch, one bad tick silently stops the timer.
 
-### 6. Dark / light theme, persisted, no FOUC
+</details>
+
+<details>
+<summary><strong>6. Dark / light theme, persisted, no FOUC</strong></summary>
 
 `src/hooks/useTheme.ts`, `src/index.css`, `tailwind.config.js`,
 `index.html`.
@@ -365,7 +386,10 @@ I didn't honour `prefers-color-scheme` as the default because the
 mock is dark and first-time visitors should see what the reviewer
 sees. The toggle lets them change it.
 
-### 7. Global `P` shortcut for pause
+</details>
+
+<details>
+<summary><strong>7. Global <code>P</code> shortcut for pause</strong></summary>
 
 `src/components/Dashboard.tsx`, around the `useEffect`.
 
@@ -376,7 +400,10 @@ Surfaced in the UI via `aria-keyshortcuts="p"` and a tooltip on the
 pause button. Ops-desk dashboards get left running on wall screens;
 a one-key pause matters.
 
-### 8. Skip-to-content link
+</details>
+
+<details>
+<summary><strong>8. Skip-to-content link</strong></summary>
 
 `src/components/Dashboard.tsx`, first child of the fragment.
 
@@ -384,7 +411,10 @@ Visually hidden anchor that jumps to `#main-content` when focused.
 Only visible under keyboard focus. WCAG 2.4.1 — trivial to add,
 always expected.
 
-### 9. Accessibility generally
+</details>
+
+<details>
+<summary><strong>9. Accessibility generally</strong></summary>
 
 Scan for `aria-` across `src/components/**`.
 
@@ -401,7 +431,10 @@ Scan for `aria-` across `src/components/**`.
 - The header datetime uses `<time dateTime>` for a machine-readable
   timestamp.
 
-### 10. Locale-correct formatting via `Intl`
+</details>
+
+<details>
+<summary><strong>10. Locale-correct formatting via <code>Intl</code></strong></summary>
 
 `src/components/Header.tsx`, `src/components/weather/WeatherCard.tsx`.
 
@@ -412,7 +445,10 @@ and `Intl.PluralRules('en', { type: 'ordinal' })` for
 the UI adapts. `en-AU` is the right call for a Melbourne-themed
 dashboard (month-first, 12-hour time).
 
-### 11. Dominant-algorithm highlighting in the legend
+</details>
+
+<details>
+<summary><strong>11. Dominant-algorithm highlighting in the legend</strong></summary>
 
 `src/components/ramp/RampChartCard.tsx`.
 
@@ -423,7 +459,10 @@ re-coloured in the algorithm's accent. All pure CSS transitions. You
 can tell who's winning without reading the donut, and the legend
 finally agrees with the sparkline header.
 
-### 12. Sparkline "fresh data" pulse
+</details>
+
+<details>
+<summary><strong>12. Sparkline "fresh data" pulse</strong></summary>
 
 `src/components/ramp/Sparkline.tsx`, `@keyframes sparklineTick` in
 `src/index.css`.
@@ -433,7 +472,10 @@ restarts a short opacity keyframe (0.6 → 1 over 350 ms, well under
 the 500 ms interval). It reads as a tiny heartbeat — you can tell at
 a glance the stream is live.
 
-### 13. `performance.mark('ramp-tick')`
+</details>
+
+<details>
+<summary><strong>13. <code>performance.mark('ramp-tick')</code></strong></summary>
 
 `src/hooks/useRampData.ts`, inside the stream callback.
 
@@ -441,7 +483,10 @@ One call per tick via the User Timing API, so DevTools' Performance
 panel can measure tick-to-paint latency without any extra
 instrumentation.
 
-### 14. Bounded sparkline buffer (60 s × 2 Hz)
+</details>
+
+<details>
+<summary><strong>14. Bounded sparkline buffer (60 s × 2 Hz)</strong></summary>
 
 `src/utils/rampTransforms.ts`, `SPARKLINE_MAX_POINTS = 120`.
 
@@ -449,14 +494,20 @@ The brief says "last 60 seconds". I cap at 120 points deterministically
 so memory per algorithm stays constant however long the tab is open.
 Covered by tests.
 
-### 15. Tabular-number alignment
+</details>
+
+<details>
+<summary><strong>15. Tabular-number alignment</strong></summary>
 
 `className="tabular-nums"` on every percentage that changes in real
 time — legend, donut, network summary. Roboto's OpenType `tnum`
 makes `9%` and `23%` occupy the same width, so the layout doesn't
 jitter each tick.
 
-### 16. Alert accent on incidents > 0
+</details>
+
+<details>
+<summary><strong>16. Alert accent on incidents > 0</strong></summary>
 
 `src/components/summary/NetworkSummaryCard.tsx`.
 
@@ -465,7 +516,10 @@ incidents stat renders with `accent="alert"` when
 `summary.incidents > 0` — the number reddens so the eye lands on the
 metric that actually matters right now.
 
-### 17. Ambient background gradients
+</details>
+
+<details>
+<summary><strong>17. Ambient background gradients</strong></summary>
 
 `src/index.css` (`:root:not(.dark) body`, `:root.dark body`).
 
@@ -473,14 +527,20 @@ Two radial gradients per theme (amber for light, sky + violet for
 dark), 6–8% opacity. Adds depth without noise; rendered by the
 browser at zero runtime cost.
 
-### 18. `retry` wired end-to-end
+</details>
+
+<details>
+<summary><strong>18. <code>retry</code> wired end-to-end</strong></summary>
 
 Every `InlineError` gets the hook's `retry`, so the Retry button
 actually re-runs the fetch. The ramp card doesn't render a Retry
 button for `streamError` because the next 500 ms tick is its own
 automatic retry.
 
-### 19. Extra fields in `networkSummary.json`
+</details>
+
+<details>
+<summary><strong>19. Extra fields in <code>networkSummary.json</code></strong></summary>
 
 Beyond the four metrics the brief asks for I added
 `alertThresholdPercent` (the threshold above which the dominant
@@ -489,12 +549,20 @@ share would count as an incident) and `currentMaxAlgorithmPercent`
 is there so a future "threshold crossed" banner is a one-component
 change that doesn't need to touch the data layer again.
 
-### 20. Theme-aware scrollbars
+</details>
+
+<details>
+<summary><strong>20. Theme-aware scrollbars</strong></summary>
 
 `src/index.css`, webkit scrollbar rules. Thin, tinted to match each
 palette, ~10 lines. Long lists stop fighting the theme.
 
+</details>
+
 ## What's not included (and why)
+
+<details>
+<summary>Five things I consciously left out (click to expand)</summary>
 
 - **No full `<Dashboard>` integration test.** Each card has its own
   tests and `useRampData` is exhaustively covered; mounting the
@@ -511,9 +579,12 @@ palette, ~10 lines. Long lists stop fighting the theme.
   and `useRampData` is transport-agnostic — it just receives a
   callback. Swapping to a real transport is a one-file change.
 
+</details>
+
 ## Tooling
 
-Pre-commit hygiene is enforced by Husky v9:
+<details>
+<summary>Pre-commit hygiene via Husky v9 (click to expand)</summary>
 
 - `.husky/pre-commit` runs `npx lint-staged` (ESLint `--fix` then
   Prettier `--write` on staged files), followed by `npm run typecheck`.
@@ -521,11 +592,13 @@ Pre-commit hygiene is enforced by Husky v9:
   typecheck catches regressions that a per-file pass would miss.
 - `.prettierrc.json` sets single quotes, trailing commas, 80 cols,
   2-space indent, LF line endings. `.prettierignore` skips `dist`,
-  `mock-data`, the lockfile, and markdown.
+  `mock-data`, and the lockfile; markdown is formatted too.
 - `eslint-config-prettier` sits last in `.eslintrc.cjs` so no
   stylistic ESLint rule fights Prettier.
 - `npm install` wires the hook up automatically via the `prepare`
   script.
+
+</details>
 
 ## Acknowledgements
 
