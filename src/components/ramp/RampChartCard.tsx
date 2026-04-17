@@ -66,12 +66,13 @@ export default function RampChartCard({ state }: Props) {
         </div>
       )}
 
-      <div className="grid grid-cols-[auto_1fr] items-center gap-6">
+      {/* On mobile: donut stacks above the legend. At sm+: side-by-side grid. */}
+      <div className="flex flex-col gap-4 sm:grid sm:grid-cols-[auto_1fr] sm:items-center sm:gap-6">
         <DonutChart
           distribution={distribution}
           dominantAlgorithm={focusedAlgorithm}
           focusPinned={isFocusPinned}
-          size={220}
+          className="mx-auto w-[160px] shrink-0 sm:mx-0 sm:w-[220px]"
         />
 
         {/*
@@ -96,7 +97,7 @@ export default function RampChartCard({ state }: Props) {
                 onMouseLeave={() => setHoveredAlgorithm(null)}
                 onFocus={() => setHoveredAlgorithm(algorithm)}
                 onBlur={() => setHoveredAlgorithm(null)}
-                className="flex w-full cursor-pointer items-center justify-between gap-6 rounded-md px-3 py-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-live/60"
+                className="flex w-full cursor-pointer items-center justify-between gap-4 rounded-md px-3 py-2.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-live/60 sm:py-2"
                 style={{
                   transition: 'opacity 0.3s ease, background-color 0.2s ease',
                   opacity: isFocused ? 1 : 0.72,

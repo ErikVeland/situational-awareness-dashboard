@@ -35,7 +35,7 @@ export default function Card({
           {headerRight}
         </header>
       )}
-      <div className="flex-1 px-5 pb-5">{children}</div>
+      <div className="flex-1 px-4 pb-4 sm:px-5 sm:pb-5">{children}</div>
     </section>
   );
 }

@@ -74,9 +74,11 @@ export default function Header({ isLive, onTogglePause }: HeaderProps) {
   const { theme, toggleTheme } = useTheme();
 
   return (
-    <header className="mb-5 flex items-start justify-between">
+    <header className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
       <div>
-        <h1 className="text-lg font-medium tracking-[0.22em] text-slate-700 dark:text-slate-200">
+        {/* Tracking and size scale up at sm so the title stays on one line on
+            narrow phones without sacrificing the wide-tracked desktop look. */}
+        <h1 className="text-sm font-medium tracking-[0.14em] text-slate-700 sm:text-lg sm:tracking-[0.22em] dark:text-slate-200">
           SITUATIONAL AWARENESS DASHBOARD
         </h1>
         <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">
@@ -84,8 +86,8 @@ export default function Header({ isLive, onTogglePause }: HeaderProps) {
         </p>
       </div>
 
-      <div className="flex items-center gap-3 text-sm">
-        {/* Theme toggle */}
+      <div className="flex items-center gap-2 sm:gap-3 text-sm">
+        {/* Theme toggle — py-2.5 keeps the tap target ≥ 44px on mobile */}
         <button
           type="button"
           onClick={toggleTheme}
@@ -95,7 +97,7 @@ export default function Header({ isLive, onTogglePause }: HeaderProps) {
           title={
             theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'
           }
-          className="flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs text-slate-500 hover:bg-slate-200/60 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-white/10 dark:hover:text-slate-200 transition"
+          className="flex items-center gap-1.5 rounded-full px-2.5 py-2.5 text-xs text-slate-500 hover:bg-slate-200/60 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-white/10 dark:hover:text-slate-200 transition sm:py-1"
         >
           {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
           <span className="hidden sm:inline">
@@ -103,7 +105,8 @@ export default function Header({ isLive, onTogglePause }: HeaderProps) {
           </span>
         </button>
 
-        {/* LIVE / PAUSED badge — aria-live so screen readers announce changes */}
+        {/* LIVE / PAUSED badge — aria-live so screen readers announce changes.
+            py-2.5 on mobile for a 44px tap target. */}
         <button
           type="button"
           onClick={onTogglePause}
@@ -111,7 +114,7 @@ export default function Header({ isLive, onTogglePause }: HeaderProps) {
           aria-keyshortcuts="p"
           title={isLive ? 'Pause (P)' : 'Resume (P)'}
           className={[
-            'inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium uppercase tracking-wider transition',
+            'inline-flex items-center gap-1.5 rounded-full px-2.5 py-2.5 text-xs font-medium uppercase tracking-wider transition sm:py-1',
             isLive
               ? 'bg-accent-live/15 text-accent-live ring-1 ring-accent-live/30'
               : 'bg-slate-200/60 text-slate-500 ring-1 ring-slate-300/60 dark:bg-slate-600/20 dark:text-slate-400 dark:ring-slate-500/30',
@@ -127,8 +130,10 @@ export default function Header({ isLive, onTogglePause }: HeaderProps) {
           <span aria-live="polite">{isLive ? 'Live' : 'Paused'}</span>
         </button>
 
+        {/* Clock — hidden on small screens where horizontal space is scarce.
+            The LIVE badge already conveys liveness; the time is supplementary. */}
         <time
-          className="text-slate-500 dark:text-slate-300"
+          className="hidden sm:block text-slate-500 dark:text-slate-300"
           dateTime={now.toISOString()}
           aria-label={`Current time: ${formatHeaderDate(now)}`}
         >

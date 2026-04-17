@@ -63,8 +63,14 @@ function computeSegments(distribution: AlgorithmDistribution): Segment[] {
 interface DonutChartProps {
   distribution: AlgorithmDistribution;
   dominantAlgorithm?: Algorithm;
-  /** Diameter in px (SVG viewBox is fixed, CSS scales it). */
+  /**
+   * Explicit diameter in px. When omitted, sizing is controlled entirely by
+   * CSS via `className` — the SVG's `viewBox` preserves the 1:1 aspect ratio
+   * automatically, so `className="w-[160px] sm:w-[220px]"` is all you need.
+   */
   size?: number;
+  /** Extra classes applied to the `<svg>` element (e.g. responsive widths). */
+  className?: string;
   /**
    * When true the non-dominant slices dim to give the focused slice more
    * visual weight. Set this while a legend row is hovered / focused; leave
@@ -76,7 +82,8 @@ interface DonutChartProps {
 export default function DonutChart({
   distribution,
   dominantAlgorithm,
-  size = 220,
+  size,
+  className = '',
   focusPinned = false,
 }: DonutChartProps) {
   const segments = useMemo(() => computeSegments(distribution), [distribution]);
@@ -90,7 +97,7 @@ export default function DonutChart({
       viewBox="-120 -120 240 240"
       width={size}
       height={size}
-      className="block overflow-visible"
+      className={`block overflow-visible ${className}`}
     >
       {!hasData ? (
         /* Placeholder ring — colour adapts to theme via CSS variable */
