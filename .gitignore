@@ -6,3 +6,6 @@ coverage
 .env
 .env.*
 !.env.example
+
+# Assignment brief is confidential — keep out of source control
+*.pdf
