@@ -4,4 +4,3 @@ coverage
 .husky/_
 mock-data
 package-lock.json
-*.md

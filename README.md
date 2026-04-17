@@ -23,18 +23,18 @@ Then open http://localhost:5173.
 
 ### Scripts
 
-| Command                | Purpose                                       |
-| ---------------------- | --------------------------------------------- |
-| `npm run dev`          | Vite dev server                               |
-| `npm run build`        | Typecheck + production build                  |
-| `npm run preview`      | Preview the production build                  |
-| `npm test`             | Vitest, one-shot                              |
-| `npm run test:watch`   | Vitest in watch mode                          |
-| `npm run lint`         | ESLint                                        |
-| `npm run lint:fix`     | ESLint with `--fix`                           |
-| `npm run format`       | Prettier `--write` across the repo            |
-| `npm run format:check` | Prettier `--check` (CI-safe, no writes)       |
-| `npm run typecheck`    | `tsc --noEmit`                                |
+| Command                | Purpose                                 |
+| ---------------------- | --------------------------------------- |
+| `npm run dev`          | Vite dev server                         |
+| `npm run build`        | Typecheck + production build            |
+| `npm run preview`      | Preview the production build            |
+| `npm test`             | Vitest, one-shot                        |
+| `npm run test:watch`   | Vitest in watch mode                    |
+| `npm run lint`         | ESLint                                  |
+| `npm run lint:fix`     | ESLint with `--fix`                     |
+| `npm run format`       | Prettier `--write` across the repo      |
+| `npm run format:check` | Prettier `--check` (CI-safe, no writes) |
+| `npm run typecheck`    | `tsc --noEmit`                          |
 
 ## How this maps to the brief
 
@@ -47,7 +47,7 @@ Then open http://localhost:5173.
 - **Delayed routes** — `DelayedRoutesCard.tsx` + `RouteRow.tsx` +
   `SeverityDot.tsx`. Severity is a discriminated union mapped to
   Tailwind classes via `SEVERITY_CLASS satisfies Record<Severity,
-  string>`: `high` is red, `medium` is amber, `low` is slate.
+string>`: `high` is red, `medium` is amber, `low` is slate.
 - **Ramp chart** — `RampChartCard.tsx` + `DonutChart.tsx`, subscribed
   via `useRampData()`, updated on every 500 ms tick.
 - **History sparkline** — `Sparkline.tsx` plots the last 120 points
@@ -75,8 +75,8 @@ Then open http://localhost:5173.
   and are consumed through a hook (`useWeather`, `useDelayedRoutes`,
   `useNetworkSummary`). Types live in `src/api/types.ts`.
 - **Severity as a discriminated union** — `type Severity = 'low' |
-  'medium' | 'high'` with `SEVERITY_CLASS satisfies Record<Severity,
-  string>`. Missing or mistyped keys fail the build.
+'medium' | 'high'` with `SEVERITY_CLASS satisfies Record<Severity,
+string>`. Missing or mistyped keys fail the build.
 
 ### Evaluation criteria
 
@@ -226,7 +226,7 @@ accepted tick.
 
 - `Severity` is the required `'low' | 'medium' | 'high'` union,
   mapped to CSS classes via `SEVERITY_CLASS satisfies Record<Severity,
-  string>`. Wrong keys or wrong-typed values fail the build.
+string>`. Wrong keys or wrong-typed values fail the build.
 - `AlgorithmDistribution = Record<Algorithm, number>` — exhaustive by
   construction.
 - `useAsyncData<T>` is generic and preserves the payload type all the
