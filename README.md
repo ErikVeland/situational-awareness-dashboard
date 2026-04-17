@@ -23,15 +23,18 @@ Then open http://localhost:5173.
 
 ### Scripts
 
-| Command              | Purpose                                 |
-| -------------------- | --------------------------------------- |
-| `npm run dev`        | Vite dev server                         |
-| `npm run build`      | Typecheck + production build            |
-| `npm run preview`    | Preview the production build            |
-| `npm test`           | Vitest, one-shot                        |
-| `npm run test:watch` | Vitest in watch mode                    |
-| `npm run lint`       | ESLint                                  |
-| `npm run typecheck`  | `tsc --noEmit`                          |
+| Command                | Purpose                                       |
+| ---------------------- | --------------------------------------------- |
+| `npm run dev`          | Vite dev server                               |
+| `npm run build`        | Typecheck + production build                  |
+| `npm run preview`      | Preview the production build                  |
+| `npm test`             | Vitest, one-shot                              |
+| `npm run test:watch`   | Vitest in watch mode                          |
+| `npm run lint`         | ESLint                                        |
+| `npm run lint:fix`     | ESLint with `--fix`                           |
+| `npm run format`       | Prettier `--write` across the repo            |
+| `npm run format:check` | Prettier `--check` (CI-safe, no writes)       |
+| `npm run typecheck`    | `tsc --noEmit`                                |
 
 ## How this maps to the brief
 
@@ -84,7 +87,7 @@ Then open http://localhost:5173.
   stable.
 - **UI fidelity** — dark-theme Tailwind palette, Roboto, responsive
   grid that collapses to a single column on small screens.
-- **Testing** — 57 passing specs; fake timers for the 500 ms stream
+- **Testing** — 59 passing specs; fake timers for the 500 ms stream
   and the 1 s clock; SVG edge cases; pause invariant.
 - **Code quality** — small files, API → hook → card → primitive,
   JSDoc on every hook.
@@ -102,6 +105,8 @@ Then open http://localhost:5173.
 - **Vitest + Testing Library.** Jest-compatible API, so the provided
   `rampTransforms.test.ts` runs unchanged.
 - **Zod** at the JSON boundary — see _Beyond the brief_.
+- **Husky + lint-staged + Prettier** for pre-commit hygiene — see
+  _Tooling_ below.
 - **No charting library.** The donut and sparkline are hand-rolled SVG;
   see _Tradeoffs_.
 
@@ -131,6 +136,7 @@ src/
 │   ├── weather/                  # Weather widget + icon
 │   ├── routes/                   # Delayed routes list + row + severity dot
 │   ├── ramp/                     # Ramp chart, donut, sparkline, pause button
+│   │                             #   *.geom.ts = pure SVG geometry (unit-tested)
 │   └── summary/                  # Network summary cards
 └── test/setup.ts
 ```
@@ -255,7 +261,8 @@ npm test
 - **Hand-rolled SVG instead of Recharts/Victory.** The donut and
   sparkline are ~100 LOC each. Upside: no runtime dependency, tiny
   bundle, deterministic output that snapshot-tests cleanly, and the
-  geometry (`buildArcPath`, `buildSparklinePath`) is exported as pure
+  geometry (`buildArcPath` in `DonutChart.geom.ts`,
+  `buildSparklinePath` in `Sparkline.geom.ts`) is exported as pure
   functions I can unit-test. Downside: no hover tooltips, no
   animations, no axes. For a real product I'd reach for Recharts.
 - **`useRampData` returns a value, not a Provider.** The stream is a
@@ -503,6 +510,22 @@ palette, ~10 lines. Long lists stop fighting the theme.
 - **No WebSocket transport.** The brief's mock is `setInterval`-based
   and `useRampData` is transport-agnostic — it just receives a
   callback. Swapping to a real transport is a one-file change.
+
+## Tooling
+
+Pre-commit hygiene is enforced by Husky v9:
+
+- `.husky/pre-commit` runs `npx lint-staged` (ESLint `--fix` then
+  Prettier `--write` on staged files), followed by `npm run typecheck`.
+  `lint-staged` alone only sees touched files, so the project-wide
+  typecheck catches regressions that a per-file pass would miss.
+- `.prettierrc.json` sets single quotes, trailing commas, 80 cols,
+  2-space indent, LF line endings. `.prettierignore` skips `dist`,
+  `mock-data`, the lockfile, and markdown.
+- `eslint-config-prettier` sits last in `.eslintrc.cjs` so no
+  stylistic ESLint rule fights Prettier.
+- `npm install` wires the hook up automatically via the `prepare`
+  script.
 
 ## Acknowledgements
 
