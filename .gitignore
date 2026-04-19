@@ -24,3 +24,7 @@ light-fresh-load.png
 
 # Personal interview notes
 INTERVIEW_NOTES.md
+
+# Git worktrees
+.worktrees/
+.vercel
